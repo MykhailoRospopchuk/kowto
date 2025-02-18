@@ -23,7 +23,18 @@ class Program
         var response = await client.GetAsync(uri);
         response.EnsureSuccessStatusCode();
         
-        var html = await response.Content.ReadAsStringAsync();
+        var rawHtml = await response.Content.ReadAsStringAsync();
+        
+        List<JobListing> jobs = JobListingHelper.FetchJobListings(rawHtml);
+
+        // Display the extracted jobs
+        foreach (var job in jobs)
+        {
+            Console.WriteLine($"Date: {job.Date}");
+            Console.WriteLine($"Job Title: {job.Title}");
+            Console.WriteLine($"Job URL: {job.Url}");
+            Console.WriteLine("------------------------------");
+        }
         
         Console.ReadKey();
     }
