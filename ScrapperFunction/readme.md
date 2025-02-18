@@ -9,3 +9,22 @@ For a `TimerTrigger` to work, you provide a schedule in the form of a [cron expr
 ## Learn more
 
 <TODO> Documentation
+
+2. Use Azure Storage Emulator (Azurite) Locally
+If you're running the function locally, install Azurite (a local Azure Storage emulator) to simulate Azure Storage:
+
+
+```bash
+npm install -g azurite
+```
+
+Then, start Azurite:
+
+```bash
+azurite --silent --location /tmp/azurite --debug /tmp/azurite/debug.log
+```
+Once it's running, set your storage connection to:
+
+```json
+"AzureWebJobsStorage": "UseDevelopmentStorage=true"
+```
