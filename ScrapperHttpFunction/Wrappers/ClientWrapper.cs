@@ -50,43 +50,42 @@ public class ClientWrapper : IDisposable
         }
     }
 
+    // TODO: create separeted method for not json result
     private async Task<ContainerResult<TReturn>> ProcessHttpResponse<TReturn>(HttpResponseMessage response)
     {
         try
         {
             response.EnsureSuccessStatusCode();
 
-
-            // TODO: this one do not work
-            if(typeof(TReturn).IsClass)
-            {
-                var result = await response.Content.ReadFromJsonAsync<TReturn>();
-                return new ContainerResult<TReturn>
-                {
-                    Value = result,
-                    Success = true
-                };
-            }
-
             if(typeof(TReturn) == typeof(string))
             {
-                var result = await response.Content.ReadAsStringAsync();
+                var content = await response.Content.ReadAsStringAsync();
                 return new ContainerResult<TReturn>
                 {
-                    Value = (TReturn)Convert.ChangeType(result, typeof(TReturn)),
+                    Value = (TReturn)Convert.ChangeType(content, typeof(TReturn)),
                     Success = true,
 
                 };
             }
-            
-            var message = await response.Content.ReadAsStringAsync();
 
-            return new ContainerResult<TReturn>()
+            var result = await response.Content.ReadFromJsonAsync<TReturn>();
+
+            if(result is null)
             {
-                Exception = new Exception(message),
-                Success = false,
-            };
-            
+                var message = await response.Content.ReadAsStringAsync();
+
+                return new ContainerResult<TReturn>()
+                {
+                    Exception = new Exception(message),
+                    Success = false,
+                };
+            }
+
+            return new ContainerResult<TReturn>
+            {
+                Value = result,
+                Success = true
+            };            
         }
         catch (Exception e)
         {
