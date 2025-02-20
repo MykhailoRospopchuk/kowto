@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using ScrapperHttpFunction.Enums;
 using ScrapperHttpFunction.Helpers;
 using ScrapperHttpFunction.Models;
+using ScrapperHttpFunction.Wrappers;
 
 namespace ScrapperHttp.Function
 {
@@ -24,21 +25,29 @@ namespace ScrapperHttp.Function
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            using var client = new HttpClient();
-            
+            using var client = ClientWrapper.GetInstance();
+
             var queryParams = new Dictionary<string, string>
             {
                 { "category", ".NET" },
                 { "exp", "1-3" }
             };
-                
+
             var uri = UrlHelper.BuildQuery(PathEnum.Vacancies, queryParams);
-            
-            var response = await client.GetAsync(uri);
-            response.EnsureSuccessStatusCode();
-            
-            var rawHtml = await response.Content.ReadAsStringAsync();
-            
+
+            var response = await client.GetAsync<string>(uri);
+
+            // response.EnsureSuccessStatusCode();
+            // var rawHtml = await response.Content.ReadAsStringAsync();
+
+            if(!response.Success)
+            {
+                _logger.LogError(response.Exception, "Failed to fetch data from the website");
+                return new BadRequestObjectResult("Failed to fetch data from the website");
+            }
+
+            var rawHtml = response.Value;
+
             List<JobListing> jobs = JobListingHelper.FetchJobListings(rawHtml);
 
             // Display the extracted jobs
@@ -54,16 +63,15 @@ namespace ScrapperHttp.Function
                 var content = new StringContent(JsonSerializer.Serialize(jobs.FirstOrDefault()), Encoding.UTF8, "application/json");
 
                 var callLogicApp = await client.PostAsync(logicAppUrl, content);
-                callLogicApp.EnsureSuccessStatusCode();
 
-                if(!callLogicApp.IsSuccessStatusCode)
+                if(!callLogicApp.Success)
                 {
                     _logger.LogError("Logic App has not been triggered");
+                    return new BadRequestObjectResult("Logic App has not been triggered");
                 }
             }
-            
+
             return new OkObjectResult(jobs);
-            // return new OkObjectResult("Welcome to Azure Functions!");
         }
     }
 }
