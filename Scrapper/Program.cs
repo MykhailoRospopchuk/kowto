@@ -33,6 +33,7 @@ class Program
             Console.WriteLine($"Date: {job.Date}");
             Console.WriteLine($"Job Title: {job.Title}");
             Console.WriteLine($"Job URL: {job.Url}");
+            Console.WriteLine($"Company Name: {job.CompanyName}");
             Console.WriteLine("------------------------------");
         }
         

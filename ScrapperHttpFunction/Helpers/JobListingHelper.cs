@@ -1,6 +1,8 @@
-namespace Scrapper.Helpers;
-
+using System;
 using HtmlAgilityPack;
+using ScrapperHttpFunction.Models;
+
+namespace ScrapperHttpFunction.Helpers;
 
 public class JobListingHelper
 {

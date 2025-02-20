@@ -1,4 +1,6 @@
-namespace Scrapper;
+using System;
+
+namespace ScrapperHttpFunction.Models;
 
 public class JobListing
 {
