@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -22,8 +24,7 @@ namespace ScrapperHttp.Function
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(UrlHelper.BaseUrl);
+            using var client = new HttpClient();
             
             var queryParams = new Dictionary<string, string>
             {
@@ -46,6 +47,21 @@ namespace ScrapperHttp.Function
                 _logger.LogInformation($"Date: {job.Date}\nJob Title: {job.Title}\nJob URL: {job.Url}\nCompany Name: {job.CompanyName}\n------------------------------");
             }
 
+            var logicAppUrl = Environment.GetEnvironmentVariable("LogicAppWorkflowURL");
+
+            if(!string.IsNullOrEmpty(logicAppUrl))
+            {
+                var content = new StringContent(JsonSerializer.Serialize(jobs.FirstOrDefault()), Encoding.UTF8, "application/json");
+
+                var callLogicApp = await client.PostAsync(logicAppUrl, content);
+                callLogicApp.EnsureSuccessStatusCode();
+
+                if(!callLogicApp.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Logic App has not been triggered");
+                }
+            }
+            
             return new OkObjectResult(jobs);
             // return new OkObjectResult("Welcome to Azure Functions!");
         }
