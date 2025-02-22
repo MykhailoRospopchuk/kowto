@@ -18,4 +18,7 @@ public class JobInfo
     
     [JsonPropertyName("company")]
     public string CompanyName { get; set; }
+
+    [JsonPropertyName("hash")]
+    public int Hash { get; set; }
 }

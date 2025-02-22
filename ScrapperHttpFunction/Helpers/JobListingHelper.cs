@@ -1,4 +1,3 @@
-using System;
 using HtmlAgilityPack;
 using ScrapperHttpFunction.Models;
 
@@ -34,7 +33,8 @@ public class JobListingHelper
                         Date = date,
                         Title = title,
                         Url = jobUrl,
-                        CompanyName = companyName
+                        CompanyName = companyName,
+                        Hash = HashCode.Combine(date, title, jobUrl, companyName)
                     });
                 }
             }

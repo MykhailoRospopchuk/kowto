@@ -5,7 +5,6 @@ using CosmoDatabase;
 using CosmoDatabase.Entities;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
-using Models;
 
 public class CosmoDbWrapper
 {
@@ -18,52 +17,31 @@ public class CosmoDbWrapper
         _logger = logger;
     }
     
-    public async Task<bool> AddJobListing(List<JobListing> jobs)
+    public async Task AddJobListing(List<JobInfo> jobs)
     {
-        var jobEntities = jobs.Select(j => 
-                new JobInfo
+        List<Task> tasks = new List<Task>(jobs.Count);
+
+        foreach (JobInfo item in jobs)
+        {
+            tasks.Add(_container.CreateItemAsync(item, new PartitionKey(item.Id))
+                .ContinueWith(itemResponse =>
                 {
-                    Id = Ulid.NewUlid().ToString(),
-                    Date = j.Date,
-                    Title = j.Title,
-                    Url = j.Url,
-                    CompanyName = j.CompanyName
-                })
-            .ToList();
-
-        List<Task> tasks = new List<Task>(jobEntities.Count);
-
-        try
-        {
-            foreach (JobInfo item in jobEntities)
-            {
-                tasks.Add(_container.CreateItemAsync(item, new PartitionKey(item.Id))
-                    .ContinueWith(itemResponse =>
+                    if (!itemResponse.IsCompletedSuccessfully)
                     {
-                        if (!itemResponse.IsCompletedSuccessfully)
+                        AggregateException innerExceptions = itemResponse.Exception.Flatten();
+                        if (innerExceptions.InnerExceptions.FirstOrDefault(innerEx => innerEx is CosmosException) is CosmosException cosmosException)
                         {
-                            AggregateException innerExceptions = itemResponse.Exception.Flatten();
-                            if (innerExceptions.InnerExceptions.FirstOrDefault(innerEx => innerEx is CosmosException) is CosmosException cosmosException)
-                            {
-                                _logger.LogError($"Received {cosmosException.StatusCode} ({cosmosException.Message}).");
-                            }
-                            else
-                            {
-                                _logger.LogError($"Exception {innerExceptions.InnerExceptions.FirstOrDefault()}.");
-                            }
+                            _logger.LogError($"Received {cosmosException.StatusCode} ({cosmosException.Message}).");
                         }
-                    }));
-            }
+                        else
+                        {
+                            _logger.LogError($"Exception {innerExceptions.InnerExceptions.FirstOrDefault()}.");
+                        }
+                    }
+                }));
+        }
 
-            await Task.WhenAll(tasks);
-            
-            return true;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message);
-            return false;
-        }
+        await Task.WhenAll(tasks);
     }
     
     public async Task<List<JobInfo>> GetJobListings()
