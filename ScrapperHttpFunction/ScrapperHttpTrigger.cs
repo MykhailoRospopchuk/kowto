@@ -9,15 +9,17 @@ using ScrapperHttpFunction.Helpers;
 using ScrapperHttpFunction.Models;
 using ScrapperHttpFunction.Wrappers;
 
-namespace ScrapperHttp.Function
+namespace ScrapperHttpFunction
 {
     public class ScrapperHttpTrigger
     {
         private readonly ILogger<ScrapperHttpTrigger> _logger;
+        private readonly CosmoDbWrapper _cosmoDbWrapper;
 
-        public ScrapperHttpTrigger(ILogger<ScrapperHttpTrigger> logger)
+        public ScrapperHttpTrigger(ILogger<ScrapperHttpTrigger> logger, CosmoDbWrapper cosmoDbWrapper)
         {
             _logger = logger;
+            _cosmoDbWrapper = cosmoDbWrapper;
         }
 
         [Function("ScrapperHttpTrigger")]
@@ -36,9 +38,6 @@ namespace ScrapperHttp.Function
             var uri = UrlHelper.BuildQuery(PathEnum.Vacancies, queryParams);
 
             var response = await client.GetAsync<string>(uri);
-
-            // response.EnsureSuccessStatusCode();
-            // var rawHtml = await response.Content.ReadAsStringAsync();
 
             if(!response.Success)
             {

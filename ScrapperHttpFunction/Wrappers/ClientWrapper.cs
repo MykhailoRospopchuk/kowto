@@ -50,42 +50,28 @@ public class ClientWrapper : IDisposable
         }
     }
 
-    // TODO: create separeted method for not json result
     private async Task<ContainerResult<TReturn>> ProcessHttpResponse<TReturn>(HttpResponseMessage response)
     {
         try
         {
             response.EnsureSuccessStatusCode();
 
-            if(typeof(TReturn) == typeof(string))
+            var result = new ContainerResult<TReturn>();
+
+            if(response.Content.Headers.ContentType.MediaType != "application/json")
             {
                 var content = await response.Content.ReadAsStringAsync();
-                return new ContainerResult<TReturn>
-                {
-                    Value = (TReturn)Convert.ChangeType(content, typeof(TReturn)),
-                    Success = true,
-
-                };
+                result.Value = (TReturn)Convert.ChangeType(content, typeof(TReturn));
+                result.Success = true;
+            }
+            else
+            {
+                var responceValue = await response.Content.ReadFromJsonAsync<TReturn>();
+                result.Value = responceValue;
+                result.Success = true;
             }
 
-            var result = await response.Content.ReadFromJsonAsync<TReturn>();
-
-            if(result is null)
-            {
-                var message = await response.Content.ReadAsStringAsync();
-
-                return new ContainerResult<TReturn>()
-                {
-                    Exception = new Exception(message),
-                    Success = false,
-                };
-            }
-
-            return new ContainerResult<TReturn>
-            {
-                Value = result,
-                Success = true
-            };            
+            return result;            
         }
         catch (Exception e)
         {
