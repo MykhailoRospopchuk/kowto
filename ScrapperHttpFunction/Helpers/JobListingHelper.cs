@@ -34,7 +34,7 @@ public class JobListingHelper
                         Title = title,
                         Url = jobUrl,
                         CompanyName = companyName,
-                        Hash = HashCode.Combine(date, title, jobUrl, companyName)
+                        Hash = HashHelper.GetHashMd5(new []{date, title, jobUrl, companyName})
                     });
                 }
             }

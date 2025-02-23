@@ -23,7 +23,7 @@ public class CosmoDbWrapper
 
         foreach (JobInfo item in jobs)
         {
-            tasks.Add(_container.CreateItemAsync(item, new PartitionKey(item.Id))
+            tasks.Add(_container.CreateItemAsync<JobInfo>(item, new PartitionKey(item.Id))
                 .ContinueWith(itemResponse =>
                 {
                     if (!itemResponse.IsCompletedSuccessfully)
@@ -51,16 +51,16 @@ public class CosmoDbWrapper
         QueryDefinition queryDefinition = new QueryDefinition(query);
         FeedIterator<JobInfo> queryResultSetIterator = _container.GetItemQueryIterator<JobInfo>(queryDefinition);
 
-        List<JobInfo> families = new List<JobInfo>();
+        List<JobInfo> jobInfos = new List<JobInfo>();
 
         while (queryResultSetIterator.HasMoreResults)
         {
             FeedResponse<JobInfo> currentResultSet = await queryResultSetIterator.ReadNextAsync();
 
-            families.AddRange(currentResultSet);
+            jobInfos.AddRange(currentResultSet);
         }
 
-        return families;
+        return jobInfos;
     }
     
     public async Task<bool> DeleteJobListing(string id)

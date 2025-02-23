@@ -6,8 +6,13 @@ using ScrapperHttpFunction.Wrappers;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("LogicAppWorkflowURL");
-if (!string.IsNullOrEmpty(connectionString))
+var logicAppUrl = Environment.GetEnvironmentVariable("LogicAppWorkflowURL");
+if (string.IsNullOrEmpty(logicAppUrl))
+{
+    throw new ArgumentException("LogicAppWorkflowURL environment variable is not set");
+}
+var connectionString = Environment.GetEnvironmentVariable("CosmoConnectionString");
+if (string.IsNullOrEmpty(connectionString))
 {
     throw new ArgumentException("Connection string is required.");
 }
@@ -16,6 +21,7 @@ await container.Initialize();
 
 builder.Services.AddSingleton(container);
 builder.Services.AddTransient<CosmoDbWrapper>();
+builder.Services.AddTransient<LogicAppWrapper>();
 
 builder.ConfigureFunctionsWebApplication();
 

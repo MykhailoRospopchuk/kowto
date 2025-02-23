@@ -1,24 +1,24 @@
 namespace ScrapperHttpFunction.CosmoDatabase.Entities;
 
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 public class JobInfo
 {
-    [JsonPropertyName("id")]
+    [JsonProperty(PropertyName = "id")]
     public string Id { get; set; }
     
-    [JsonPropertyName("date")]
+    [JsonProperty(PropertyName = "date")]
     public string Date { get; set; }
     
-    [JsonPropertyName("title")]
+    [JsonProperty(PropertyName = "title")]
     public string Title { get; set; }
     
-    [JsonPropertyName("url")]
+    [JsonProperty(PropertyName = "url")]
     public string Url { get; set; }
     
-    [JsonPropertyName("company")]
+    [JsonProperty(PropertyName = "company")]
     public string CompanyName { get; set; }
 
-    [JsonPropertyName("hash")]
-    public int Hash { get; set; }
+    [JsonProperty(PropertyName = "hash")]
+    public string Hash { get; set; }
 }
