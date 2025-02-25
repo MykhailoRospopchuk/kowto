@@ -9,14 +9,14 @@ using ScrapperHttpFunction.Wrappers;
 
 namespace ScrapperHttpFunction
 {
-    public class ScrapperHttpTrigger
+    public class VacancyScrapper
     {
-        private readonly ILogger<ScrapperHttpTrigger> _logger;
+        private readonly ILogger<VacancyScrapper> _logger;
         private readonly CosmoDbWrapper _cosmoDbWrapper;
         private readonly LogicAppWrapper _logicAppWrapper;
 
-        public ScrapperHttpTrigger(
-            ILogger<ScrapperHttpTrigger> logger,
+        public VacancyScrapper(
+            ILogger<VacancyScrapper> logger,
             CosmoDbWrapper cosmoDbWrapper,
             LogicAppWrapper logicAppWrapper)
         {
@@ -26,8 +26,8 @@ namespace ScrapperHttpFunction
         }
 
         // TODO: change to scheduled trigger
-        [Function("ScrapperHttpTrigger")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+        [Function(nameof(VacancyScrapper))]
+        public async Task<IActionResult> Run([TimerTrigger("0 */5 8-23 * * *")] TimerInfo req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
