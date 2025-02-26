@@ -27,7 +27,7 @@ namespace ScrapperHttpFunction
 
         // TODO: change to scheduled trigger
         [Function(nameof(VacancyScrapper))]
-        public async Task<IActionResult> Run([TimerTrigger("0 */5 8-23 * * *")] TimerInfo req)
+        public async Task<IActionResult> Run([TimerTrigger("0 0 6-22 * * *")] TimerInfo req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 

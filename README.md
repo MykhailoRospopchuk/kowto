@@ -4,7 +4,7 @@
 The ```kowto``` is a C# project designed to work with Azure Functions. It includes functionality for interacting with Azure Cosmos DB and Logic Apps.
 
 ## Idea
-In this project at this stage, there is one simple function - to notify me when a new vacancy appears on the DOU website. Once an hour between 8:00 and 23:00 (UTC) the function makes a query on DOU with the specified filter and loads information about vacancies. Compares with the values ​​in the database and if there are new vacancies, it calls a logic application that sends an email with information about the new vacancy
+In this project at this stage, there is one simple function - to notify me when a new vacancy appears on the DOU website. Once an hour between 6:00 and 22:00 (UTC) the function makes a query on DOU with the specified filter and loads information about vacancies. Compares with the values ​​in the database and if there are new vacancies, it calls a logic application that sends an email with information about the new vacancy
 
 ![second](images/second.png)
 
