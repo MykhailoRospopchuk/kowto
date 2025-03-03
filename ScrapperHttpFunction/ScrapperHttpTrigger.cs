@@ -1,14 +1,14 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using ScrapperHttpFunction.Enums;
-using ScrapperHttpFunction.Helpers;
-using ScrapperHttpFunction.Models;
-using ScrapperHttpFunction.Wrappers;
-
 namespace ScrapperHttpFunction
 {
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.Functions.Worker;
+    using Microsoft.Extensions.Logging;
+    using Enums;
+    using Helpers;
+    using Models;
+    using Wrappers;
+
     public class VacancyScrapper
     {
         private readonly ILogger<VacancyScrapper> _logger;
@@ -27,31 +27,63 @@ namespace ScrapperHttpFunction
 
         // TODO: change to scheduled trigger
         [Function(nameof(VacancyScrapper))]
-        public async Task<IActionResult> Run([TimerTrigger("0 0 6-22 * * *")] TimerInfo req)
+        // public async Task<IActionResult> Run([TimerTrigger("0 0 6-22 * * *")] TimerInfo req)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
+            List<JobListing> jobs = new List<JobListing>();
+
             using var client = ClientWrapper.GetInstance();
 
-            var queryParams = new Dictionary<string, string>
+            var queryParamsDou = new Dictionary<string, string>
             {
                 { "category", ".NET" },
                 { "exp", "1-3" }
             };
 
-            var uri = UrlHelper.BuildQuery(PathEnum.Vacancies, queryParams);
+            var uriDou = UrlHelper.BuildQuery(PathEnum.DOU, queryParamsDou);
 
-            var response = await client.GetAsync<string>(uri);
-
-            if(!response.Success)
+            var responseDou = await client.GetAsync<string>(uriDou);
+            
+            if(!responseDou.Success)
             {
-                _logger.LogError(response.Exception, "Failed to fetch data from the website");
-                return new BadRequestObjectResult("Failed to fetch data from the website");
+                _logger.LogError(responseDou.Exception, "Failed to fetch data from the DOU website");
+            }
+            else
+            {
+                var rawHtml = responseDou.Value;
+                jobs.AddRange(JobListingHelper.FetchJobListings(PathEnum.DOU, rawHtml));
+            }
+            
+            var queryParamsDjinni = new List<KeyValuePair<string, string>>
+            {
+                new ("primary_keyword", ".NET"),
+                new ("primary_keyword", "Dotnet Cloud"),
+                new ("primary_keyword", "Dotnet Web"),
+                new ("primary_keyword", "ASP.NET"),
+                new ("exp_level", "1y"),
+                new ("exp_level", "2y")
+            };
+
+            var uriDjinni = UrlHelper.BuildQuery(PathEnum.Djinni, queryParamsDjinni);
+
+            var responseDjinni = await client.GetAsync<string>(uriDjinni);
+            
+            if(!responseDjinni.Success)
+            {
+                _logger.LogError(responseDou.Exception, "Failed to fetch data from the Djinni website");
+            }
+            else
+            {
+                var rawHtml = responseDjinni.Value;
+                jobs.AddRange(JobListingHelper.FetchJobListings(PathEnum.Djinni, rawHtml));
             }
 
-            var rawHtml = response.Value;
-
-            List<JobListing> jobs = JobListingHelper.FetchJobListings(rawHtml);
+            if (!responseDou.Success && !responseDjinni.Success)
+            {
+                return new BadRequestObjectResult("Failed to fetch data from the website");
+            }
 
             var existJobs = await _cosmoDbWrapper.GetJobListings();
 

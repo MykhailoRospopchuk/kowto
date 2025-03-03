@@ -2,5 +2,6 @@ namespace ScrapperHttpFunction.Enums;
 
 public enum PathEnum
 {
-    Vacancies = 1
+    DOU = 1,
+    Djinni = 2
 }

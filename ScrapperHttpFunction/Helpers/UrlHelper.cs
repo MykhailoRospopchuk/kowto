@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using System.Text.Encodings.Web;
 using ScrapperHttpFunction.Enums;
@@ -7,11 +6,10 @@ namespace ScrapperHttpFunction.Helpers;
 
 public class UrlHelper
 {
-    public static readonly string BaseUrl = "https://jobs.dou.ua/";
-
-    private static readonly IDictionary<PathEnum, string> Path = new Dictionary<PathEnum, string>()
+    private static readonly IDictionary<PathEnum, string> Path = new Dictionary<PathEnum, string>
     {
-        { PathEnum.Vacancies, "vacancies" },
+        { PathEnum.DOU, "https://jobs.dou.ua/vacancies" },
+        { PathEnum.Djinni, "https://djinni.co/jobs" }
     };
 
     public static string BuildQuery(PathEnum path, IEnumerable<KeyValuePair<string, string>> queryParams)
@@ -22,7 +20,6 @@ public class UrlHelper
         }
 
         var sb = new StringBuilder();
-        sb.Append(BaseUrl);
         sb.Append(uri);
 
         bool first = true;
