@@ -1,5 +1,3 @@
-using System;
-
 namespace ScrapperHttpFunction.ResultContainer;
 
 public class ContainerResult

@@ -36,10 +36,10 @@ namespace ScrapperHttpFunction
 
             using var client = ClientWrapper.GetInstance();
 
-            var queryParamsDou = new Dictionary<string, string>
+            var queryParamsDou = new List<KeyValuePair<string, string>>
             {
-                { "category", ".NET" },
-                { "exp", "1-3" }
+                new ("category", ".NET"),
+                new ("exp", "1-3")
             };
 
             var uriDou = UrlHelper.BuildQuery(PathEnum.DOU, queryParamsDou);

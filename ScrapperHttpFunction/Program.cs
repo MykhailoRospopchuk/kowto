@@ -3,6 +3,7 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ScrapperHttpFunction.CosmoDatabase;
+using ScrapperHttpFunction.Services;
 using ScrapperHttpFunction.Wrappers;
 
 var builder = FunctionsApplication.CreateBuilder(args);
@@ -23,6 +24,7 @@ await container.Initialize();
 builder.Services.AddSingleton(container);
 builder.Services.AddTransient<CosmoDbWrapper>();
 builder.Services.AddTransient<LogicAppWrapper>();
+builder.Services.AddTransient<WatcherService>();
 
 builder.ConfigureFunctionsWebApplication();
 
