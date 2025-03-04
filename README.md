@@ -33,6 +33,7 @@ git clone https://github.com/MykhailoRospopchuk/kowto.git
     "AzureWebJobsStorage": "",
     "DEPLOYMENT_STORAGE_CONNECTION_STRING": "",
     "LogicAppWorkflowURL": "",
+    "CommunicationLogicApp":"",
     "CosmoConnectionString": "",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
   }
@@ -41,7 +42,12 @@ git clone https://github.com/MykhailoRospopchuk/kowto.git
 
 3. **As you already understand you need set up your NO-SQL database (CosmoDB in this our case) and create simple Azure Logic App**
 
+As I have already discovered "through scientific trial and error," if you use Outlook mail, it can be temporarily blocked if you send a message once an hour.
+
 ![first](images/first.png)
+
+So I tried another option using Azure Communication Service with Email Communication Service. You can create default azure managed domain ```DoNotReplay@************azurecomm.net``` (and as expect it will go in spamm folder on mailbox). But it works
+![third](images/third.png)
 
 4. **Build and run the project:**
 
