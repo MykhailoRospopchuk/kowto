@@ -1,11 +1,13 @@
 namespace ScrapperHttpFunction;
 
+using Constant;
 using CosmoDatabase.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Enums;
 using Helpers;
+using Microsoft.AspNetCore.Http;
 using Models;
 using Services;
 using Wrappers;
@@ -35,6 +37,7 @@ public class VacancyScrapper
     // public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a request.");
+        _logger.LogInformation(Environment.GetEnvironmentVariable(FunctionEnviroment.AZURE_FUNCTIONS_ENVIRONMENT));
 
         var queryParamsDou = new List<KeyValuePair<string, string>>
         {
@@ -75,10 +78,13 @@ public class VacancyScrapper
         {
             await _cosmoDbWrapper.AddJobListing(processingResult.toAdd);
 
-            // Display the extracted jobs
-            foreach (var job in processingResult.toAdd)
+            if (Environment.GetEnvironmentVariable(FunctionEnviroment.AZURE_FUNCTIONS_ENVIRONMENT) == FunctionEnviroment.Development)
             {
-                _logger.LogInformation($"Date: {job.Date}\nJob Title: {job.Title}\nJob URL: {job.Url}\nCompany Name: {job.CompanyName}\n------------------------------");
+                // Display the extracted jobs
+                foreach (var job in processingResult.toAdd)
+                {
+                    _logger.LogInformation($"Date: {job.Date}\nJob Title: {job.Title}\nJob URL: {job.Url}\nCompany Name: {job.CompanyName}\n------------------------------");
+                }
             }
 
             var callLogicApp = await _logicAppWrapper.CallLogicApp(processingResult.toAdd);
