@@ -20,6 +20,11 @@ public class WatcherService
     {
         resourceConfigs.Add(resourceConfig);
     }
+    
+    public void AddConfig(List<ResourceConfig> resourceConfigs)
+    {
+        resourceConfigs.AddRange(resourceConfigs);
+    }
 
     public async Task<List<JobListing>> ProcessResources()
     {

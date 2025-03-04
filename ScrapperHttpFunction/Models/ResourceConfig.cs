@@ -4,10 +4,10 @@ using Enums;
 
 public record ResourceConfig
 {
-    public List<KeyValuePair<string, string>> Params { get; init; }
+    public List<KeyValuePair<string, string>> Params { get; init; } = new ();
     public PathEnum Path { get; init; }
 
-    public ResourceConfig(List<KeyValuePair<string, string>> urlParams, PathEnum path)
+    public ResourceConfig(PathEnum path, List<KeyValuePair<string, string>> urlParams)
     {
         Params = urlParams;
         Path = path;
