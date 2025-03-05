@@ -91,7 +91,7 @@ public class CosmoDbWrapper
         catch (CosmosException e)
         {
             _logger.LogError("Could not delete job listing with id {id}", id);
-            _logger.LogError($"Received {e.StatusCode} ({e.Message}).");
+            _logger.LogError($"Received Code:{e.StatusCode} Message: ({e.Message}).");
         }
         catch (Exception e)
         {
