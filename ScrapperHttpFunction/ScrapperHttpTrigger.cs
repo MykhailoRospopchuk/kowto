@@ -51,6 +51,7 @@ public class VacancyScrapper
             new ("primary_keyword", "Dotnet Cloud"),
             new ("primary_keyword", "Dotnet Web"),
             new ("primary_keyword", "ASP.NET"),
+            new ("primary_keyword", "Blazor"),
             new ("exp_level", "1y"),
             new ("exp_level", "2y")
         };
