@@ -46,7 +46,7 @@ As I have already discovered "through scientific trial and error," if you use Ou
 
 ![first](images/first.png)
 
-So I tried another option using Azure Communication Service with Email Communication Service. You can create default azure managed domain ```DoNotReplay@************azurecomm.net``` (and as expect it will go in spamm folder on mailbox). But it works
+So I tried another option using Azure Communication Service with Email Communication Service. You can create default azure managed domain ```DoNotReplay@************azurecomm.net``` (and as expect it will go in spam folder on mailbox). But it works
 ![third](images/third.png)
 
 4. **Build and run the project:**

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 public class CosmoDbWrapper
 {
-    private Container _container;
+    private IReadOnlyDictionary<string, Container> _container;
     private readonly ILogger<CosmoDbWrapper> _logger;
 
     public CosmoDbWrapper(CosmoDbContainer container, ILogger<CosmoDbWrapper> logger)
@@ -17,13 +17,19 @@ public class CosmoDbWrapper
         _logger = logger;
     }
     
-    public async Task AddJobListing(List<JobInfo> jobs)
+    public async Task AddRecords<T>(List<T> jobs) where T : IKeyEntity
     {
         List<Task> tasks = new List<Task>(jobs.Count);
 
-        foreach (JobInfo item in jobs)
+        if (!_container.TryGetValue(typeof(T).AssemblyQualifiedName, out Container container))
         {
-            tasks.Add(_container.CreateItemAsync<JobInfo>(item, new PartitionKey(item.Id))
+            _logger.LogError($"No container for type {typeof(T).AssemblyQualifiedName}");
+            return;
+        }
+
+        foreach (T item in jobs)
+        {
+            tasks.Add(container.CreateItemAsync<T>(item, new PartitionKey(item.Id))
                 .ContinueWith(itemResponse =>
                 {
                     if (!itemResponse.IsCompletedSuccessfully)
@@ -44,30 +50,42 @@ public class CosmoDbWrapper
         await Task.WhenAll(tasks);
     }
     
-    public async Task<List<JobInfo>> GetJobListings()
+    public async Task<List<T>> GetRecords<T>() where T : IKeyEntity
     {
+        if (!_container.TryGetValue(typeof(T).AssemblyQualifiedName, out Container container))
+        {
+            _logger.LogError($"No container for type {typeof(T).AssemblyQualifiedName}");
+            return new List<T>();
+        }
+        
         var query = "SELECT * FROM c";
+        List<T> jobInfos = new List<T>();
         
         QueryDefinition queryDefinition = new QueryDefinition(query);
-        FeedIterator<JobInfo> queryResultSetIterator = _container.GetItemQueryIterator<JobInfo>(queryDefinition);
-
-        List<JobInfo> jobInfos = new List<JobInfo>();
-
-        while (queryResultSetIterator.HasMoreResults)
+        using (FeedIterator<T> queryResultSetIterator = container.GetItemQueryIterator<T>(queryDefinition))
         {
-            FeedResponse<JobInfo> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+            while (queryResultSetIterator.HasMoreResults)
+            {
+                FeedResponse<T> currentResultSet = await queryResultSetIterator.ReadNextAsync();
 
-            jobInfos.AddRange(currentResultSet);
+                jobInfos.AddRange(currentResultSet);
+            }
         }
 
         return jobInfos;
     }
     
-    public async Task<bool> DeleteJobListing(string id)
+    public async Task<bool> DeleteRecord<T>(string id) where T : IKeyEntity
     {
         try
         {
-            var result = await _container.DeleteItemAsync<JobInfo>(id, new PartitionKey(id));
+            if (!_container.TryGetValue(typeof(T).AssemblyQualifiedName, out Container container))
+            {
+                _logger.LogError($"No container for type {typeof(T).AssemblyQualifiedName}");
+                return false;
+            }
+            
+            var result = await container.DeleteItemAsync<T>(id, new PartitionKey(id));
             return result.StatusCode == HttpStatusCode.OK;
         }
         catch (CosmosException e)

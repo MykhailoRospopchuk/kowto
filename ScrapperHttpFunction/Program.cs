@@ -2,29 +2,43 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using ScrapperHttpFunction.CosmoDatabase;
 using ScrapperHttpFunction.Services;
 using ScrapperHttpFunction.Wrappers;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
-var logicAppUrl = Environment.GetEnvironmentVariable("LogicAppWorkflowURL");
-if (string.IsNullOrEmpty(logicAppUrl))
-{
-    throw new ArgumentException("LogicAppWorkflowURL environment variable is not set");
-}
-var connectionString = Environment.GetEnvironmentVariable("CosmoConnectionString");
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new ArgumentException("Connection string is required.");
-}
-var container = new CosmoDbContainer(connectionString);
-await container.Initialize();
+var loggerBuilder = builder.Logging;
+var logger = loggerBuilder.Services.BuildServiceProvider().GetService<ILogger<Program>>();
 
-builder.Services.AddSingleton(container);
-builder.Services.AddTransient<CosmoDbWrapper>();
-builder.Services.AddTransient<LogicAppWrapper>();
-builder.Services.AddTransient<WatcherService>();
+try
+{
+    var logicAppUrl = Environment.GetEnvironmentVariable("LogicAppWorkflowURL");
+    if (string.IsNullOrEmpty(logicAppUrl))
+    {
+        throw new ArgumentException("LogicAppWorkflowURL environment variable is not set");
+    }
+    var connectionString = Environment.GetEnvironmentVariable("CosmoConnectionString");
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new ArgumentException("Connection string is required.");
+    }
+    
+    var container = new CosmoDbContainer(connectionString);
+    await container.Initialize();
+    
+    builder.Services.AddSingleton(container);
+    builder.Services.AddTransient<CosmoDbWrapper>();
+    builder.Services.AddTransient<LogicAppWrapper>();
+    builder.Services.AddTransient<WatcherService>();
+}
+catch (Exception ex)
+{
+    logger.LogError(ex.Message);
+    logger.LogInformation("App shut down");
+    return;
+}
 
 builder.ConfigureFunctionsWebApplication();
 
