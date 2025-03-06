@@ -29,13 +29,17 @@ git clone https://github.com/MykhailoRospopchuk/kowto.git
 {
   "IsEncrypted": false,
   "Values": {
-    "APPLICATIONINSIGHTS_CONNECTION_STRING": "",
     "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "",
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": "",
     "DEPLOYMENT_STORAGE_CONNECTION_STRING": "",
     "LogicAppWorkflowURL": "",
-    "CommunicationLogicApp":"",
     "CosmoConnectionString": "",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
+    "FUNCTIONS_EXTENSION_VERSION": "",
+    "WEBSITE_RUN_FROM_PACKAGE": "",
+    "WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED": "",
+    "AZURE_FUNCTIONS_ENVIRONMENT": "Production",
+    "CommunicationLogicApp":
   }
 }
 ```
@@ -53,6 +57,60 @@ So I tried another option using Azure Communication Service with Email Communica
 
 ```bash
 func start
+```
+5. In order for the **VacancyScrapper** function to be able to process vacancies - you need to register vacancy sources. You can manually enter them into the database. Or you can use the second **ResourceRegistration** function which is designed to add and remove the configuration of vacancy sources. Since the function has an authorization level of function, you must specify the ```x-functions-key``` key in the request headers
+```json
+{
+    "DeleteRecordIds": [],
+    "Resources": [
+        {
+            "Path": 1,
+            "Params": [
+                {
+                    "Key": "category",
+                    "Value": ".NET"
+                },
+                {
+                    "Key": "exp",
+                    "Value": "1-3"
+                }
+            ]
+        },
+        {
+            "Path": 2,
+            "Params": [
+                {
+                    "Key": "primary_keyword",
+                    "Value": ".NET"
+                },
+                {
+                    "Key": "primary_keyword",
+                    "Value": "Dotnet Cloud"
+                },
+                {
+                    "Key": "primary_keyword",
+                    "Value": "Dotnet Web"
+                },
+                {
+                    "Key": "primary_keyword",
+                    "Value": "ASP.NET"
+                },
+                {
+                    "Key": "primary_keyword",
+                    "Value": "Blazor"
+                },
+                {
+                    "Key": "exp_level",
+                    "Value": "1y"
+                },
+                {
+                    "Key": "exp_level",
+                    "Value": "2y"
+                }
+            ]
+        }
+    ]
+}
 ```
 ## Usage
 The project provides Azure Functions that interact with Cosmos DB and Logic Apps. Ensure that the necessary environment variables are set before running the application.
