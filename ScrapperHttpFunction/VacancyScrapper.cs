@@ -5,7 +5,6 @@ using CosmoDatabase.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Enums;
 using Helpers;
 using Microsoft.AspNetCore.Http;
 using Models;
@@ -37,7 +36,6 @@ public class VacancyScrapper
     // public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         _logger.LogInformation("C# HTTP trigger function processed a request.");
-        _logger.LogInformation(Environment.GetEnvironmentVariable(FunctionEnviroment.AZURE_FUNCTIONS_ENVIRONMENT));
 
         var configs = await _cosmoDbWrapper.GetRecords<Resource>();
 
@@ -45,26 +43,12 @@ public class VacancyScrapper
         {
             return new OkObjectResult(new List<JobInfo>());
         }
-        
-        var queryParamsDou = new List<KeyValuePair<string, string>>
-        {
-            new ("category", ".NET"),
-            new ("exp", "1-3")
-        };
 
-        var queryParamsDjinni = new List<KeyValuePair<string, string>>
-        {
-            new ("primary_keyword", ".NET"),
-            new ("primary_keyword", "Dotnet Cloud"),
-            new ("primary_keyword", "Dotnet Web"),
-            new ("primary_keyword", "ASP.NET"),
-            new ("primary_keyword", "Blazor"),
-            new ("exp_level", "1y"),
-            new ("exp_level", "2y")
-        };
+        var resourceConfigs = configs
+            .Select(x => new ResourceConfig(x.Path, x.Params))
+            .ToList();
 
-        _watcherService.AddConfig(new ResourceConfig(PathEnum.DOU, queryParamsDou));
-        _watcherService.AddConfig(new ResourceConfig(PathEnum.Djinni, queryParamsDjinni));
+        _watcherService.AddConfig(resourceConfigs);
 
         List<JobListing> jobs = await _watcherService.ProcessResources();
 

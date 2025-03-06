@@ -9,7 +9,7 @@ using Wrappers;
 public class WatcherService
 {
     private readonly ILogger<WatcherService> _logger;
-    private List<ResourceConfig> resourceConfigs = [];
+    private List<ResourceConfig> _resourceConfigs = [];
 
     public WatcherService(ILogger<WatcherService> logger)
     {
@@ -18,12 +18,12 @@ public class WatcherService
 
     public void AddConfig(ResourceConfig resourceConfig)
     {
-        resourceConfigs.Add(resourceConfig);
+        _resourceConfigs.Add(resourceConfig);
     }
     
     public void AddConfig(List<ResourceConfig> resourceConfigs)
     {
-        resourceConfigs.AddRange(resourceConfigs);
+        _resourceConfigs.AddRange([.. resourceConfigs.DistinctBy(x => x.Path)]);
     }
 
     public async Task<List<JobListing>> ProcessResources()
@@ -33,7 +33,7 @@ public class WatcherService
             ConcurrentStack<JobListing> jobs = new ConcurrentStack<JobListing>();
             List<Task> tasks = new List<Task>();
 
-            foreach (var resource in resourceConfigs)
+            foreach (var resource in _resourceConfigs)
             {
                 tasks.Add(Processing(resource, jobs));
             }
