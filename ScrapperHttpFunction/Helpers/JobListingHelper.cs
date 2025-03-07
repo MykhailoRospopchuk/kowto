@@ -85,8 +85,19 @@ public class JobListingHelper
                     string title = vacancyTitleNode?.InnerText.Trim() ?? "N/A";
                     string jobUrl = vacancyTitleNode?.GetAttributeValue("href", "#") ?? String.Empty;
 
-                    var companyNode = job.SelectSingleNode(".//a[contains(@class, 'text-body js-analytics-event')]");
-                    string companyName = companyNode?.InnerText.Trim() ?? "Not Found";
+                    var companyCommonNode = job.SelectSingleNode(".//div[contains(@class, 'd-inline-flex align-items-center gap-1')]");
+                    string companyName;
+                    var companyNode = companyCommonNode.SelectSingleNode(".//a[contains(@class, 'text-body js-analytics-event')]");
+
+                    if (companyNode != null)
+                    {
+                        companyName = companyNode.InnerText.Trim();
+                    }
+                    else
+                    {
+                        companyNode = companyCommonNode.SelectSingleNode(".//span[contains(@class, 'text-nowrap')]");
+                        companyName = companyNode?.InnerText.Trim() ?? "Not Found";
+                    }
 
                     // TODO: I need to come up with something because this element is probably created by a script.
                     var dateNode = job.SelectSingleNode(".//span[@data-original-title]");
