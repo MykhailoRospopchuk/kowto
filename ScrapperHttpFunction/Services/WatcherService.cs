@@ -9,11 +9,13 @@ using Wrappers;
 public class WatcherService
 {
     private readonly ILogger<WatcherService> _logger;
+    private readonly ClientWrapper _client;
     private List<ResourceConfig> _resourceConfigs = [];
 
-    public WatcherService(ILogger<WatcherService> logger)
+    public WatcherService(ILogger<WatcherService> logger, ClientWrapper client)
     {
         _logger = logger;
+        _client = client;
     }
 
     public void AddConfig(ResourceConfig resourceConfig)
@@ -53,10 +55,9 @@ public class WatcherService
     {
         try
         {
-            using var client = ClientWrapper.GetInstance();
             var url = UrlHelper.BuildQuery(resource.Path, resource.Params);
             
-            var response = await client.GetAsync<string>(url);
+            var response = await _client.GetAsync<string>(url);
             
             if(!response.Success)
             {

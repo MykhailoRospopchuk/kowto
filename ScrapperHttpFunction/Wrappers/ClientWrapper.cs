@@ -3,18 +3,13 @@ using ScrapperHttpFunction.ResultContainer;
 
 namespace ScrapperHttpFunction.Wrappers;
 
-public class ClientWrapper : IDisposable
+public class ClientWrapper
 {
     private HttpClient _client;
 
-    private ClientWrapper()
+    public ClientWrapper(HttpClient client)
     {
-        _client = new HttpClient();
-    }
-
-    public static ClientWrapper GetInstance()
-    {
-        return new ClientWrapper();
+        _client = client;
     }
 
     public async Task<ContainerResult> PostAsync(string uri, HttpContent httpContent)
@@ -81,10 +76,5 @@ public class ClientWrapper : IDisposable
                 Success = false,
             };
         }
-    }
-
-    public void Dispose()
-    {
-        _client.Dispose();
     }
 }
