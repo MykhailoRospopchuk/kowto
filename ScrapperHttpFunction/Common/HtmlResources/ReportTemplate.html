@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vacancies Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Vacancies Added in the Last 30 Days</h2>
+
+<!-- Chart Container -->
+<div style="width: 80%; margin: 0 auto;">
+    <canvas id="vacanciesChart"></canvas>
+</div>
+
+<!-- Table Container -->
+<div>
+    <h2>Vacancy Details</h2>
+    <table id="vacancyTable">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Title</th>
+            <th>Company</th>
+            <th>URL</th>
+            <th>Id</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Data will be inserted here dynamically -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    
+    let data = [
+        {
+            "id": "test",
+            "date": "test",
+            "title": "test",
+            "url": "https://jobs.dou.ua/companies/",
+            "company": "test",
+            "_ts": 1740331589
+        },
+    ];
+
+    // Add more records here by replacing...
+    data = [];
+
+    // ===========================
+    // Create Chart Data
+    // ===========================
+    function createChartData() {
+        const countsPerDay = {};
+
+        // Group and count by date
+        data.forEach(vacancy => {
+            const date = new Date(vacancy._ts * 1000).toISOString().split('T')[0];
+            if (!countsPerDay[date]) {
+                countsPerDay[date] = 0;
+            }
+            countsPerDay[date]++;
+        });
+
+        // Fill missing dates within the range
+        const allDates = [];
+        const startDate = new Date(Math.min(...data.map(v => v._ts * 1000)));
+        const endDate = new Date(Math.max(...data.map(v => v._ts * 1000)));
+
+        let currentDate = new Date(startDate);
+
+        endDate.setDate(endDate.getDate() + 1);
+
+        while (currentDate < endDate) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            allDates.push(dateStr);
+            if (!countsPerDay[dateStr]) {
+                countsPerDay[dateStr] = 0; // Fill missing date with 0
+            }
+            currentDate.setDate(currentDate.getDate() + 1); // Increment day
+        }
+
+        // Sort dates in ascending order
+        allDates.sort();
+
+        const labels = allDates;
+        const counts = allDates.map(date => countsPerDay[date] || 0);
+
+        return { labels, counts };
+    }
+
+    // ===========================
+    // Create Chart
+    // ===========================
+    function renderChart() {
+        const { labels, counts } = createChartData();
+
+        const ctx = document.getElementById('vacanciesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Number of Vacancies',
+                    data: counts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stepSize: 1
+                    }
+                }
+            }
+        });
+    }
+
+    // ===========================
+    // Create Table
+    // ===========================
+    function renderTable() {
+        const tableBody = document.getElementById('vacancyTable').querySelector('tbody');
+        tableBody.innerHTML = ''; // Clear existing data
+
+        data.forEach(vacancy => {
+            const row = tableBody.insertRow();
+
+            // Date
+            const dateCell = row.insertCell(0);
+            dateCell.textContent = new Date(vacancy._ts * 1000).toISOString().split('T')[0];
+
+            // Title
+            const titleCell = row.insertCell(1);
+            titleCell.textContent = vacancy.title;
+
+            // Company
+            const companyCell = row.insertCell(2);
+            companyCell.textContent = vacancy.company;
+
+            // URL
+            const urlCell = row.insertCell(3);
+            const link = document.createElement('a');
+            link.href = vacancy.url;
+            link.textContent = 'View';
+            link.target = '_blank';
+            urlCell.appendChild(link);
+
+            // Id
+            const idCell = row.insertCell(4);
+            idCell.textContent = vacancy.id;
+        });
+    }
+
+    // ===========================
+    // Initialize Chart and Table
+    // ===========================
+    window.onload = () => {
+        renderChart();
+        renderTable();
+    };
+</script>
+
+</body>
+</html>
