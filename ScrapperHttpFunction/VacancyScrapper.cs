@@ -37,7 +37,7 @@ public class VacancyScrapper
     {
         _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-        var configs = await _cosmoDbWrapper.GetRecords<Resource>();
+        var configs = await _cosmoDbWrapper.GetRecords<Resource, Resource>();
 
         if (!configs.Any())
         {
@@ -57,29 +57,24 @@ public class VacancyScrapper
             return new OkObjectResult(new List<JobInfo>());
         }
 
-        var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo>();
+        var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfo>();
 
-        var processingResult = JobProcessingHelper.ProcessJobListings(jobs, existJobs);
+        var processingResult = JobProcessingHelper.ToAdd(jobs, existJobs);
 
-        foreach (var item in processingResult.toRemove)
+        if (processingResult.Any())
         {
-            await _cosmoDbWrapper.DeleteRecord<JobInfo>(item.Id);
-        }
-
-        if (processingResult.toAdd.Any())
-        {
-            await _cosmoDbWrapper.AddRecords(processingResult.toAdd);
+            await _cosmoDbWrapper.AddRecords(processingResult);
 
             if (Environment.GetEnvironmentVariable(FunctionEnviroment.AZURE_FUNCTIONS_ENVIRONMENT) == FunctionEnviroment.Development)
             {
                 // Display the extracted jobs
-                foreach (var job in processingResult.toAdd)
+                foreach (var job in processingResult)
                 {
                     _logger.LogInformation($"Date: {job.Date}\nJob Title: {job.Title}\nJob URL: {job.Url}\nCompany Name: {job.CompanyName}\n------------------------------");
                 }
             }
 
-            var callLogicApp = await _logicAppWrapper.CallLogicApp(processingResult.toAdd);
+            var callLogicApp = await _logicAppWrapper.CallLogicApp(processingResult);
 
             if(!callLogicApp)
             {
@@ -87,6 +82,6 @@ public class VacancyScrapper
             }
         }
 
-        return new OkObjectResult(processingResult.toAdd);
+        return new OkObjectResult(processingResult);
     }
 }

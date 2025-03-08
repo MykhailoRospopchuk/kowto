@@ -27,7 +27,7 @@ public class ResourceRegistration
         {
             if (req.Method == HttpMethods.Get)
             {
-                var resources = await _cosmoDbWrapper.GetRecords<Resource>();
+                var resources = await _cosmoDbWrapper.GetRecords<Resource, Resource>();
                 return new OkObjectResult(resources);
             }
 

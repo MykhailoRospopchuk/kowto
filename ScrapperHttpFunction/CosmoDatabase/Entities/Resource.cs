@@ -1,9 +1,10 @@
 namespace ScrapperHttpFunction.CosmoDatabase.Entities;
 
+using Base;
 using Enums;
 using Newtonsoft.Json;
 
-public class Resource : IKeyEntity
+public class Resource : IKeyEntity, IOutType
 {
     [JsonProperty(PropertyName = "id")]
     public string Id { get; set; }

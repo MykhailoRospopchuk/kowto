@@ -1,4 +1,4 @@
-namespace ScrapperHttpFunction.CosmoDatabase.Entities;
+namespace ScrapperHttpFunction.CosmoDatabase.Base;
 
 public interface IKeyEntity
 {

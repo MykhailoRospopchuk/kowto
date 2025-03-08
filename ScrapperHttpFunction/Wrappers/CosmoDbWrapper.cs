@@ -2,7 +2,7 @@ namespace ScrapperHttpFunction.Wrappers;
 
 using System.Net;
 using CosmoDatabase;
-using CosmoDatabase.Entities;
+using CosmoDatabase.Base;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
@@ -49,24 +49,30 @@ public class CosmoDbWrapper
 
         await Task.WhenAll(tasks);
     }
-    
-    public async Task<List<T>> GetRecords<T>() where T : IKeyEntity
+
+    public async Task<List<TOut>> GetRecords<T, TOut>(int range = 0) where T : IKeyEntity where TOut : IOutType
     {
         if (!_container.TryGetValue(typeof(T).AssemblyQualifiedName, out Container container))
         {
             _logger.LogError($"No container for type {typeof(T).AssemblyQualifiedName}");
-            return new List<T>();
+            return new List<TOut>();
         }
-        
+
         var query = "SELECT * FROM c";
-        List<T> jobInfos = new List<T>();
-        
         QueryDefinition queryDefinition = new QueryDefinition(query);
-        using (FeedIterator<T> queryResultSetIterator = container.GetItemQueryIterator<T>(queryDefinition))
+        if (range > 0)
+        {
+            var beginRange = DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeSeconds();
+            query = "SELECT * FROM c WHERE c._ts > @timestamp";
+            queryDefinition = new QueryDefinition(query).WithParameter("@timestamp", beginRange);
+        }
+
+        List<TOut> jobInfos = new List<TOut>();
+        using (FeedIterator<TOut> queryResultSetIterator = container.GetItemQueryIterator<TOut>(queryDefinition))
         {
             while (queryResultSetIterator.HasMoreResults)
             {
-                FeedResponse<T> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+                FeedResponse<TOut> currentResultSet = await queryResultSetIterator.ReadNextAsync();
 
                 jobInfos.AddRange(currentResultSet);
             }

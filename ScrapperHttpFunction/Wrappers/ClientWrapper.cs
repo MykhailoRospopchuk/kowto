@@ -61,8 +61,8 @@ public class ClientWrapper
             }
             else
             {
-                var responceValue = await response.Content.ReadFromJsonAsync<TReturn>();
-                result.Value = responceValue;
+                var responseValue = await response.Content.ReadFromJsonAsync<TReturn>();
+                result.Value = responseValue;
                 result.Success = true;
             }
 

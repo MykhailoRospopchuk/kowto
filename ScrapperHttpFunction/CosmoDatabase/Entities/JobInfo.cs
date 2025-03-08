@@ -1,8 +1,9 @@
 namespace ScrapperHttpFunction.CosmoDatabase.Entities;
 
+using Base;
 using Newtonsoft.Json;
 
-public class JobInfo : IKeyEntity
+public class JobInfo : IKeyEntity, IOutType
 {
     [JsonProperty(PropertyName = "id")]
     public string Id { get; set; }
