@@ -62,7 +62,7 @@ public class CosmoDbWrapper
         QueryDefinition queryDefinition = new QueryDefinition(query);
         if (range > 0)
         {
-            var beginRange = DateTimeOffset.UtcNow.AddDays(-30).ToUnixTimeSeconds();
+            var beginRange = DateTimeOffset.UtcNow.AddDays(-range).ToUnixTimeSeconds();
             query = "SELECT * FROM c WHERE c._ts > @timestamp";
             queryDefinition = new QueryDefinition(query).WithParameter("@timestamp", beginRange);
         }

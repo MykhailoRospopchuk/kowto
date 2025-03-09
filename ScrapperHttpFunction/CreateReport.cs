@@ -6,6 +6,8 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using System.Text;
+using Azure;
+using Azure.Storage.Blobs;
 using Common.HtmlResources;
 using CosmoDatabase.Entities;
 using Models.DatabaseModels;
@@ -32,11 +34,15 @@ public class CreateReport
         try
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-        
-            var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfoOutModel>();
+            
+            var date = DateTime.UtcNow;
+
+            // Load vacancy info from DB
+            var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfoOutModel>(date.Day-1);
             var data = JsonConvert.SerializeObject(existJobs);
             var replaceText = $"data = {data};";
         
+            // Load the report template
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = typeof(HtmlIndexAssembly).Assembly.GetManifestResourceNames().FirstOrDefault(x => x.Contains(HtmlTemplate));
 
@@ -46,15 +52,33 @@ public class CreateReport
                 return new BadRequestObjectResult("The report template resource is not available.");
             }
 
-            string htmlTemplate;
-            using (var stream = assembly.GetManifestResourceStream(resourceName))
-            using (var reader = new StreamReader(stream))
+            var htmlTemplate = string.Empty;
+            await using (var stream = assembly.GetManifestResourceStream(resourceName))
             {
-                htmlTemplate = await reader.ReadToEndAsync();
+                if (stream != null)
+                {
+                    using var reader = new StreamReader(stream);
+                    htmlTemplate = await reader.ReadToEndAsync();
+                }
             }
 
+            // Populate the report template with the vacancy info
             var htmlBuilder = new StringBuilder(htmlTemplate);
             htmlBuilder.Replace(DataPlaceholder, replaceText);
+
+            // Upload the report to the Azure Blob Storage
+            var signature = Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_SIGNATURE") ??
+                            throw new ArgumentNullException();
+            var blobUri = Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_URI") ?? 
+                          throw new ArgumentNullException();
+            
+            var sasCred = new AzureSasCredential(signature);
+            var blobClient = new BlobClient(new Uri(blobUri + $"{date:yyyy-MM}/report.html"), sasCred);
+            
+            var byteArray = Encoding.UTF8.GetBytes(htmlBuilder.ToString());
+            var ms = new MemoryStream(byteArray);
+            
+            await blobClient.UploadAsync(ms);
             
             return new ContentResult()
             {

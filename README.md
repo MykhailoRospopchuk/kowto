@@ -39,7 +39,9 @@ git clone https://github.com/MykhailoRospopchuk/kowto.git
     "WEBSITE_RUN_FROM_PACKAGE": "",
     "WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED": "",
     "AZURE_FUNCTIONS_ENVIRONMENT": "Production",
-    "CommunicationLogicApp":
+    "CommunicationLogicApp": "",
+    "AZURE_BLOB_CONTAINER_URI": "",
+    "AZURE_BLOB_CONTAINER_SIGNATURE": ""
   }
 }
 ```
