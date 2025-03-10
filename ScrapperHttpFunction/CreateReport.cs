@@ -33,7 +33,8 @@ public class CreateReport
     }
 
     [Function(nameof(CreateReport))]
-    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
+    // public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
+    public async Task<IActionResult> Run([TimerTrigger("0 0 5 * * *")] TimerInfo req)
     {
         try
         {
