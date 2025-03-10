@@ -10,6 +10,7 @@ using Azure;
 using Azure.Storage.Blobs;
 using Common.HtmlResources;
 using CosmoDatabase.Entities;
+using FunctionRequestDTO;
 using Models.DatabaseModels;
 using Newtonsoft.Json;
 using Wrappers;
@@ -18,14 +19,17 @@ public class CreateReport
 {
     private readonly ILogger<CreateReport> _logger;
     private readonly CosmoDbWrapper _cosmoDbWrapper;
+    private readonly LogicAppWrapper _logicAppWrapper;
 
     private const string DataPlaceholder = "{{data = [];}}";
+    private const string TargetMonth = "{{target_month}}";
     private const string HtmlTemplate = "ReportTemplate.html";
 
-    public CreateReport(ILogger<CreateReport> logger, CosmoDbWrapper cosmoDbWrapper)
+    public CreateReport(ILogger<CreateReport> logger, CosmoDbWrapper cosmoDbWrapper, LogicAppWrapper logicAppWrapper)
     {
         _logger = logger;
         _cosmoDbWrapper = cosmoDbWrapper;
+        _logicAppWrapper = logicAppWrapper;
     }
 
     [Function(nameof(CreateReport))]
@@ -34,14 +38,14 @@ public class CreateReport
         try
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-            
-            var date = DateTime.UtcNow;
+
+            var date = DateTime.UtcNow.AddDays(-1);
 
             // Load vacancy info from DB
-            var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfoOutModel>(date.Day-1);
+            var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfoOutModel>(date.Day);
             var data = JsonConvert.SerializeObject(existJobs);
             var replaceText = $"data = {data};";
-        
+
             // Load the report template
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = typeof(HtmlIndexAssembly).Assembly.GetManifestResourceNames().FirstOrDefault(x => x.Contains(HtmlTemplate));
@@ -65,26 +69,36 @@ public class CreateReport
             // Populate the report template with the vacancy info
             var htmlBuilder = new StringBuilder(htmlTemplate);
             htmlBuilder.Replace(DataPlaceholder, replaceText);
+            htmlBuilder.Replace(TargetMonth, $"{date:yyyy-MM}");
 
             // Upload the report to the Azure Blob Storage
             var signature = Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_SIGNATURE") ??
                             throw new ArgumentNullException();
-            var blobUri = Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_URI") ?? 
+            var containerUri = Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_URI") ?? 
                           throw new ArgumentNullException();
-            
+
             var sasCred = new AzureSasCredential(signature);
-            var blobClient = new BlobClient(new Uri(blobUri + $"{date:yyyy-MM}/report.html"), sasCred);
-            
+            var blobUri = new Uri(containerUri + $"{date:yyyy-MM}/{date:yyyy-MM}-report.html");
+            var blobClient = new BlobClient(blobUri, sasCred);
+
             var byteArray = Encoding.UTF8.GetBytes(htmlBuilder.ToString());
             var ms = new MemoryStream(byteArray);
-            
-            await blobClient.UploadAsync(ms);
-            
-            return new ContentResult()
+
+            await blobClient.UploadAsync(ms, overwrite: true);
+
+            // Send email with url to report
+            var callLogicApp = await _logicAppWrapper.CallLogicApp(new LogicAppRequest<string>
             {
-                Content = htmlBuilder.ToString(),
-                ContentType = "text/html",
-            };
+                Title = "Vacancy report for the current month",
+                Content = blobUri.ToString()
+            });
+
+            if(!callLogicApp)
+            {
+                _logger.LogError("Logic App has not been triggered");
+            }
+
+            return new OkObjectResult(blobUri.ToString());
         }
         catch (Exception e)
         {

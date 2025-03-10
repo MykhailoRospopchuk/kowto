@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<h2>Vacancies Added in the Last 30 Days</h2>
+<h2>Vacancies Added in the {{target_month}}</h2>
 
 <!-- Chart Container -->
 <div style="width: 80%; margin: 0 auto;">
@@ -69,6 +69,7 @@
     <table id="vacancyTable">
         <thead>
         <tr>
+            <th>№</th>
             <th>Date</th>
             <th>Title</th>
             <th>Company</th>
@@ -177,23 +178,29 @@
         const tableBody = document.getElementById('vacancyTable').querySelector('tbody');
         tableBody.innerHTML = ''; // Clear existing data
 
+        let rowNumber = 0;
         data.forEach(vacancy => {
+            rowNumber = rowNumber + 1;
+
             const row = tableBody.insertRow();
+            // Row number
+            const rowNumberCell = row.insertCell(0);
+            rowNumberCell.textContent = rowNumber;
 
             // Date
-            const dateCell = row.insertCell(0);
+            const dateCell = row.insertCell(1);
             dateCell.textContent = new Date(vacancy._ts * 1000).toISOString().split('T')[0];
 
             // Title
-            const titleCell = row.insertCell(1);
+            const titleCell = row.insertCell(2);
             titleCell.textContent = vacancy.title;
 
             // Company
-            const companyCell = row.insertCell(2);
+            const companyCell = row.insertCell(3);
             companyCell.textContent = vacancy.company;
 
             // URL
-            const urlCell = row.insertCell(3);
+            const urlCell = row.insertCell(4);
             const link = document.createElement('a');
             link.href = vacancy.url;
             link.textContent = 'View';
@@ -201,7 +208,7 @@
             urlCell.appendChild(link);
 
             // Id
-            const idCell = row.insertCell(4);
+            const idCell = row.insertCell(5);
             idCell.textContent = vacancy.id;
         });
     }

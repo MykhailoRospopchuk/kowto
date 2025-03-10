@@ -2,6 +2,7 @@ namespace ScrapperHttpFunction;
 
 using Constant;
 using CosmoDatabase.Entities;
+using FunctionRequestDTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -74,11 +75,15 @@ public class VacancyScrapper
                 }
             }
 
-            var callLogicApp = await _logicAppWrapper.CallLogicApp(processingResult);
+            var callLogicApp = await _logicAppWrapper.CallLogicApp(new LogicAppRequest<string>
+            {
+                Title = "Attention! New vacancy has been discovered",
+                Content = HtmlMessageHelper.BuildHtml(processingResult)
+            });
 
             if(!callLogicApp)
             {
-                return new BadRequestObjectResult("Logic App has not been triggered");
+                _logger.LogError("Logic App has not been triggered");
             }
         }
 
