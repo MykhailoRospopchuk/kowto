@@ -8,11 +8,18 @@ In this project at this stage, there is one simple function - to notify me when 
 
 ![second](images/second.png)
 
+Also collecting statistics on vacancies per month (while the functionality is in its initial stage of existence). An example can be viewed at the link (https://scrapperhttp.blob.core.windows.net/scrapper-report/2025-03/2025-03-report.html the data is not accurate as a result of testing the functionality)
+
+![report_email](images/report_email.png)
+![report_example](images/report_example.png)
+
 ## Key Features
 - Azure Functions Integration: The project is built using Azure Functions, making it scalable and efficient for serverless applications.
 - Cosmos DB Integration: It includes a Cosmos DB container and wrapper for database operations.
+- Azure Blob Storage: Public blob for storing reports.
 - Logic App Workflow: The project interacts with Azure Logic Apps through a specified workflow URL.
 - Application Insights: Integration with Application Insights for monitoring and diagnostics.
+- Email Communication Service: Sending emails from Logic App
 ## Setup Instructions
 1. **Clone the repository:**
 
@@ -53,7 +60,9 @@ As I have already discovered "through scientific trial and error," if you use Ou
 ![first](images/first.png)
 
 So I tried another option using Azure Communication Service with Email Communication Service. You can create default azure managed domain ```DoNotReplay@************azurecomm.net``` (and as expect it will go in spam folder on mailbox). But it works
-![third](images/third.png)
+
+![logic_app_trigger](images/logic_app_trigger.png)
+![logic_app_communication](images/logic_app_communication.png)
 
 4. **Build and run the project:**
 
