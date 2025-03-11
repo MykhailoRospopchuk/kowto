@@ -29,6 +29,7 @@ public class LogicAppWrapper
         if(!callLogicApp.Success)
         {
             _logger.LogError("Logic App has not been triggered");
+            _logger.LogError(callLogicApp.Exception.Message);
         }
 
         return callLogicApp.Success;

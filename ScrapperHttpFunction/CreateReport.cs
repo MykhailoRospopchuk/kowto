@@ -103,7 +103,7 @@ public class CreateReport
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "An error occurred while generating the report.");
+            _logger.LogError(e, e.Message);
             return new BadRequestObjectResult("An error occurred while generating the report.");
         }
     }
