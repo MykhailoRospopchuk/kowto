@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
+using ScrapperHttpFunction.Common.Configurations;
 using ScrapperHttpFunction.CosmoDatabase;
 using ScrapperHttpFunction.Services;
 using ScrapperHttpFunction.Wrappers;
@@ -15,20 +16,34 @@ var logger = loggerBuilder.Services.BuildServiceProvider().GetService<ILogger<Pr
 
 try
 {
-    var logicAppUrl = Environment.GetEnvironmentVariable("LogicAppWorkflowURL");
-    if (string.IsNullOrEmpty(logicAppUrl))
-    {
+    var logicAppUrl = 
+        Environment.GetEnvironmentVariable("LogicAppWorkflowURL") ??
         throw new ArgumentException("LogicAppWorkflowURL environment variable is not set");
-    }
-    var connectionString = Environment.GetEnvironmentVariable("CosmoConnectionString");
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new ArgumentException("Connection string is required.");
-    }
+    var connectionString = 
+        Environment.GetEnvironmentVariable("CosmoConnectionString") ?? 
+        throw new ArgumentException("CosmoConnectionString environment variable is not set");
+    var signature = 
+        Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_SIGNATURE") ??
+        throw new ArgumentNullException();
+    var containerUri = 
+        Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_URI") ?? 
+        throw new ArgumentNullException();
     
     var container = new CosmoDbContainer(connectionString);
     await container.Initialize();
+
+    builder.Services.AddSingleton(new AzureBlobContainerConfiguration
+    {
+        Signature = signature,
+        ContainerUri = containerUri
+    });
     
+    builder.Services.AddSingleton(new CommunicationLogicAppConfiguration
+    {
+        LogicAppUrl = logicAppUrl
+    });
+
+    builder.Services.Configure<AzureBlobContainerConfiguration>(builder.Configuration.GetSection("AzureBlobContainer"));
     builder.Services.AddSingleton(container);
     builder.Services.AddTransient<CosmoDbWrapper>();
     builder.Services.AddTransient<LogicAppWrapper>();

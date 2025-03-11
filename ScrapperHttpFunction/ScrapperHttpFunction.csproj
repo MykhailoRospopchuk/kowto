@@ -39,9 +39,6 @@
     <None Remove="Common\HtmlResources\ReportTemplate.html" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Common\" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Common\HtmlResources\ReportTemplate.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>

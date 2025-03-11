@@ -62,31 +62,34 @@ public class VacancyScrapper
 
         var processingResult = JobProcessingHelper.ToAdd(jobs, existJobs);
 
-        if (processingResult.Any())
+        if (processingResult.Count == 0)
         {
-            await _cosmoDbWrapper.AddRecords(processingResult);
-
-            if (Environment.GetEnvironmentVariable(FunctionEnviroment.AZURE_FUNCTIONS_ENVIRONMENT) == FunctionEnviroment.Development)
-            {
-                // Display the extracted jobs
-                foreach (var job in processingResult)
-                {
-                    _logger.LogInformation($"Date: {job.Date}\nJob Title: {job.Title}\nJob URL: {job.Url}\nCompany Name: {job.CompanyName}\n------------------------------");
-                }
-            }
-
-            var callLogicApp = await _logicAppWrapper.CallLogicApp(new LogicAppRequest<string>
-            {
-                Title = "Attention! New vacancy has been discovered",
-                Content = HtmlMessageHelper.BuildHtml(processingResult)
-            });
-
-            if(!callLogicApp)
-            {
-                _logger.LogError("Logic App has not been triggered");
-            }
+            return new OkObjectResult(processingResult);
         }
 
+        await _cosmoDbWrapper.AddRecords(processingResult);
+
+        await _logicAppWrapper.CallLogicApp(new LogicAppRequest<string>
+        {
+            Title = "Attention! New vacancy has been discovered",
+            Content = HtmlMessageHelper.BuildHtml(processingResult)
+        });
+
+        LoggResultDevEnv(processingResult);
+
         return new OkObjectResult(processingResult);
+    }
+
+    private void LoggResultDevEnv(List<JobInfo> jobs)
+    {
+        if (Environment.GetEnvironmentVariable(FunctionEnviroment.AZURE_FUNCTIONS_ENVIRONMENT) != FunctionEnviroment.Development)
+        {
+            return;
+        }
+
+        foreach (var job in jobs)
+        {
+            _logger.LogInformation($"Date: {job.Date}\nJob Title: {job.Title}\nJob URL: {job.Url}\nCompany Name: {job.CompanyName}\n------------------------------");
+        }
     }
 }
