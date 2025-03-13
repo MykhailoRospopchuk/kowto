@@ -62,7 +62,7 @@ try
         options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
 
         // Customize total request timeout
-        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(40);
+        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(60);
     });
 }
 catch (Exception ex)
