@@ -54,7 +54,7 @@ try
         // Customize retry strategy
         options.Retry.MaxRetryAttempts = 3;
         options.Retry.BackoffType = DelayBackoffType.Exponential;
-        options.Retry.Delay = TimeSpan.FromSeconds(2);
+        options.Retry.Delay = TimeSpan.FromSeconds(1);
 
         // Customize circuit breaker strategy
         options.CircuitBreaker.FailureRatio = 0.1; // 10% failure rate

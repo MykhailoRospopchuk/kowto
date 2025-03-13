@@ -38,46 +38,55 @@ public class VacancyScrapper
     {
         _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-        var configs = await _cosmoDbWrapper.GetRecords<Resource, Resource>();
-
-        if (!configs.Any())
+        try
         {
-            return new OkObjectResult(new List<JobInfo>());
-        }
+            var configs = await _cosmoDbWrapper.GetRecords<Resource, Resource>();
 
-        var resourceConfigs = configs
-            .Select(x => new ResourceConfig(x.Path, x.Params))
-            .ToList();
+            if (!configs.Any())
+            {
+                return new OkObjectResult(new List<JobInfo>());
+            }
 
-        _watcherService.AddConfig(resourceConfigs);
+            var resourceConfigs = configs
+                .Select(x => new ResourceConfig(x.Path, x.Params))
+                .ToList();
 
-        List<JobListing> jobs = await _watcherService.ProcessResources();
+            _watcherService.AddConfig(resourceConfigs);
 
-        if (jobs.Count == 0)
-        {
-            return new OkObjectResult(new List<JobInfo>());
-        }
+            List<JobListing> jobs = await _watcherService.ProcessResources();
 
-        var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfo>();
+            if (jobs.Count == 0)
+            {
+                return new OkObjectResult(new List<JobInfo>());
+            }
 
-        var processingResult = JobProcessingHelper.ToAdd(jobs, existJobs);
+            var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfo>();
 
-        if (processingResult.Count == 0)
-        {
+            var processingResult = JobProcessingHelper.ToAdd(jobs, existJobs);
+
+            if (processingResult.Count == 0)
+            {
+                return new OkObjectResult(processingResult);
+            }
+
+            await _cosmoDbWrapper.AddRecords(processingResult);
+
+            await _logicAppWrapper.CallLogicApp(new LogicAppRequest<string>
+            {
+                Title = "Attention! New vacancy has been discovered",
+                Content = HtmlMessageHelper.BuildHtml(processingResult)
+            });
+
+            LoggResultDevEnv(processingResult);
+
             return new OkObjectResult(processingResult);
         }
-
-        await _cosmoDbWrapper.AddRecords(processingResult);
-
-        await _logicAppWrapper.CallLogicApp(new LogicAppRequest<string>
+        catch (Exception e)
         {
-            Title = "Attention! New vacancy has been discovered",
-            Content = HtmlMessageHelper.BuildHtml(processingResult)
-        });
-
-        LoggResultDevEnv(processingResult);
-
-        return new OkObjectResult(processingResult);
+            _logger.LogError(e, "An error occurred while processing the request.");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+        }
+        
     }
 
     private void LoggResultDevEnv(List<JobInfo> jobs)
