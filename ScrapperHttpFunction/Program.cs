@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 using ScrapperHttpFunction.Common.Configurations;
+using ScrapperHttpFunction.Constant;
 using ScrapperHttpFunction.CosmoDatabase;
 using ScrapperHttpFunction.Services;
 using ScrapperHttpFunction.Wrappers;
@@ -16,17 +17,20 @@ var logger = loggerBuilder.Services.BuildServiceProvider().GetService<ILogger<Pr
 
 builder.ConfigureFunctionsWebApplication();
 
-// Known issues. Compatibility with .NET Application Insights 
-// https://github.com/dotnet/extensions/blob/main/src/Libraries/Microsoft.Extensions.Http.Resilience/README.md#compatibility-with-net-application-insights
-builder.Services
-    .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
+if (Environment.GetEnvironmentVariable(FunctionEnviroment.AZURE_FUNCTIONS_ENVIRONMENT) == FunctionEnviroment.Development)
+{
+    // Known issues. Compatibility with .NET Application Insights 
+    // https://github.com/dotnet/extensions/blob/main/src/Libraries/Microsoft.Extensions.Http.Resilience/README.md#compatibility-with-net-application-insights
+    builder.Services
+        .AddApplicationInsightsTelemetryWorkerService()
+        .ConfigureFunctionsApplicationInsights();
+}
 
 try
 {
     var logicAppUrl = 
         Environment.GetEnvironmentVariable("CommunicationLogicApp") ??
-        throw new ArgumentException("LogicAppWorkflowURL environment variable is not set");
+        throw new ArgumentException("CommunicationLogicApp environment variable is not set");
     var connectionString = 
         Environment.GetEnvironmentVariable("CosmoConnectionString") ?? 
         throw new ArgumentException("CosmoConnectionString environment variable is not set");
@@ -57,20 +61,7 @@ try
     builder.Services.AddTransient<WatcherService>();
     builder.Services.AddScoped<ClientWrapper>();
 
-    builder.Services.AddHttpClient<ClientWrapper>().AddStandardResilienceHandler(options => {
-        // Customize retry strategy
-        options.Retry.MaxRetryAttempts = 3;
-        options.Retry.BackoffType = DelayBackoffType.Exponential;
-        options.Retry.Delay = TimeSpan.FromSeconds(1);
-
-        // Customize circuit breaker strategy
-        options.CircuitBreaker.FailureRatio = 0.1; // 10% failure rate
-        options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
-        options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(30);
-
-        // Customize total request timeout
-        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(60);
-    });
+    builder.Services.AddHttpClient<ClientWrapper>();
 }
 catch (Exception ex)
 {

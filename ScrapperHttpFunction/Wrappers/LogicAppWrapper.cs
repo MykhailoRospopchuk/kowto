@@ -22,18 +22,15 @@ public class LogicAppWrapper
         _configuration = configuration;
     }
 
-    public async Task<bool> CallLogicApp<T>(LogicAppRequest<T> request)
+    public async Task CallLogicApp<T>(LogicAppRequest<T> request, CancellationToken cancellationToken)
     {
         var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
-        var callLogicApp = await _client.PostAsync(_configuration.LogicAppUrl, content);
+        var callLogicApp = await _client.PostAsync(_configuration.LogicAppUrl, content, cancellationToken);
 
         if(!callLogicApp.Success)
         {
             _logger.LogError("Logic App has not been triggered");
-            _logger.LogError(callLogicApp.Exception.Message);
         }
-
-        return callLogicApp.Success;
     }
 }

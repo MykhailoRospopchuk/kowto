@@ -16,6 +16,8 @@ public class WatcherService
     {
         _logger = logger;
         _client = client;
+
+        _client.BuildResiliencePipeline();
     }
 
     public void AddConfig(ResourceConfig resourceConfig)
@@ -28,7 +30,7 @@ public class WatcherService
         _resourceConfigs.AddRange([.. resourceConfigs.DistinctBy(x => x.Path)]);
     }
 
-    public async Task<List<JobListing>> ProcessResources()
+    public async Task<List<JobListing>> ProcessResources(CancellationToken cancellationToken)
     {
         try
         {
@@ -37,7 +39,7 @@ public class WatcherService
 
             foreach (var resource in _resourceConfigs)
             {
-                tasks.Add(Processing(resource, jobs));
+                tasks.Add(Processing(resource, jobs, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -51,17 +53,17 @@ public class WatcherService
         }
     }
 
-    private async Task Processing(ResourceConfig resource, ConcurrentStack<JobListing> jobs)
+    private async Task Processing(ResourceConfig resource, ConcurrentStack<JobListing> jobs, CancellationToken cancellationToken)
     {
         try
         {
             var url = UrlHelper.BuildQuery(resource.Path, resource.Params);
             
-            var response = await _client.GetAsync<string>(url);
+            var response = await _client.GetAsync<string>(url, cancellationToken);
             
             if(!response.Success)
             {
-                _logger.LogError(response.Exception, $"Failed to fetch data from the {resource.Path.ToString()} website");
+                _logger.LogError($"Failed to fetch data from the {resource.Path.ToString()} website");
             }
             else
             {

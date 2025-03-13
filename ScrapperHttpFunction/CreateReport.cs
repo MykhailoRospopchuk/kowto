@@ -132,6 +132,6 @@ public class CreateReport
         {
             Title = "Vacancy report for the current month",
             Content = _reportUrl
-        });
+        }, CancellationToken.None);
     }
 }

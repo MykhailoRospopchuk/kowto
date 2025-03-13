@@ -53,7 +53,7 @@ public class VacancyScrapper
 
             _watcherService.AddConfig(resourceConfigs);
 
-            List<JobListing> jobs = await _watcherService.ProcessResources();
+            List<JobListing> jobs = await _watcherService.ProcessResources(CancellationToken.None);
 
             if (jobs.Count == 0)
             {
@@ -75,7 +75,7 @@ public class VacancyScrapper
             {
                 Title = "Attention! New vacancy has been discovered",
                 Content = HtmlMessageHelper.BuildHtml(processingResult)
-            });
+            }, CancellationToken.None);
 
             LoggResultDevEnv(processingResult);
 
