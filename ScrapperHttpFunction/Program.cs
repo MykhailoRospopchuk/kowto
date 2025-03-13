@@ -25,7 +25,7 @@ builder.Services
 try
 {
     var logicAppUrl = 
-        Environment.GetEnvironmentVariable("LogicAppWorkflowURL") ??
+        Environment.GetEnvironmentVariable("CommunicationLogicApp") ??
         throw new ArgumentException("LogicAppWorkflowURL environment variable is not set");
     var connectionString = 
         Environment.GetEnvironmentVariable("CosmoConnectionString") ?? 
