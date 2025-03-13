@@ -14,6 +14,14 @@ var builder = FunctionsApplication.CreateBuilder(args);
 var loggerBuilder = builder.Logging;
 var logger = loggerBuilder.Services.BuildServiceProvider().GetService<ILogger<Program>>();
 
+builder.ConfigureFunctionsWebApplication();
+
+// Known issues. Compatibility with .NET Application Insights 
+// https://github.com/dotnet/extensions/blob/main/src/Libraries/Microsoft.Extensions.Http.Resilience/README.md#compatibility-with-net-application-insights
+builder.Services
+    .AddApplicationInsightsTelemetryWorkerService()
+    .ConfigureFunctionsApplicationInsights();
+
 try
 {
     var logicAppUrl = 
@@ -43,7 +51,6 @@ try
         LogicAppUrl = logicAppUrl
     });
 
-    builder.Services.Configure<AzureBlobContainerConfiguration>(builder.Configuration.GetSection("AzureBlobContainer"));
     builder.Services.AddSingleton(container);
     builder.Services.AddTransient<CosmoDbWrapper>();
     builder.Services.AddTransient<LogicAppWrapper>();
@@ -71,13 +78,6 @@ catch (Exception ex)
     logger.LogInformation("App shut down");
     return;
 }
-
-builder.ConfigureFunctionsWebApplication();
-
-// Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4.
-builder.Services
-    .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
 
 var host = builder.Build();
 host.Run();
