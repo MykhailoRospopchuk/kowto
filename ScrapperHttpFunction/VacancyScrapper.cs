@@ -33,8 +33,8 @@ public class VacancyScrapper
 
     // TODO: change to scheduled trigger
     [Function(nameof(VacancyScrapper))]
-    public async Task<IActionResult> Run([TimerTrigger("0 0 6-22 * * *")] TimerInfo req)
-    // public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    public async Task<IActionResult> Run([TimerTrigger("0 0 6-22 * * *")] TimerInfo req, CancellationToken cancellationToken)
+    // public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req, CancellationToken cancellationToken)
     {
         _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -53,7 +53,7 @@ public class VacancyScrapper
 
             _watcherService.AddConfig(resourceConfigs);
 
-            List<JobListing> jobs = await _watcherService.ProcessResources(CancellationToken.None);
+            List<JobListing> jobs = await _watcherService.ProcessResources(cancellationToken);
 
             if (jobs.Count == 0)
             {
@@ -75,7 +75,7 @@ public class VacancyScrapper
             {
                 Title = "Attention! New vacancy has been discovered",
                 Content = HtmlMessageHelper.BuildHtml(processingResult)
-            }, CancellationToken.None);
+            }, cancellationToken);
 
             LoggResultDevEnv(processingResult);
 

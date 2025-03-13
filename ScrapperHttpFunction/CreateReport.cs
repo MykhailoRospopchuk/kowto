@@ -49,8 +49,8 @@ public class CreateReport
     }
 
     [Function(nameof(CreateReport))]
-    // public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
-    public async Task<IActionResult> Run([TimerTrigger("0 0 5 * * *")] TimerInfo req)
+    // public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req, CancellationToken cancellationToken)
+    public async Task<IActionResult> Run([TimerTrigger("0 0 5 * * *")] TimerInfo req, CancellationToken cancellationToken)
     {
         try
         {
@@ -59,7 +59,7 @@ public class CreateReport
             await LoadData();
             await LoadTemplate();
             await UploadReport();
-            await SendEmail();
+            await SendEmail(cancellationToken);
 
             return new OkObjectResult(_reportUrl);
         }
@@ -125,13 +125,13 @@ public class CreateReport
         _reportUrl = blobUri.ToString();
     }
 
-    private async Task SendEmail()
+    private async Task SendEmail(CancellationToken cancellationToken)
     {
         // Send email with url to report
         await _logicAppWrapper.CallLogicApp(new LogicAppRequest<string>
         {
             Title = "Vacancy report for the current month",
             Content = _reportUrl
-        }, CancellationToken.None);
+        }, cancellationToken);
     }
 }
