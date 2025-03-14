@@ -12,6 +12,7 @@ using Common.Configurations;
 using Common.HtmlResources;
 using CosmoDatabase.Entities;
 using FunctionRequestDTO;
+using Helpers;
 using Models.DatabaseModels;
 using Newtonsoft.Json;
 using Wrappers;
@@ -24,9 +25,10 @@ public class CreateReport
     private readonly AzureBlobContainerConfiguration _blobConfiguration;
 
     private readonly DateTime _date;
-    private string _data;
+    private string _dataContent;
     private string _report;
     private string _reportUrl;
+    private int _count;
 
     private const string DataPlaceholder = "{{data = [];}}";
     private const string TargetMonth = "{{target_month}}";
@@ -73,8 +75,11 @@ public class CreateReport
     private async Task LoadData()
     {
         // Load vacancy info from DB
-        var existJobs = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfoOutModel>(_date.Day);
-        _data = JsonConvert.SerializeObject(existJobs);
+        var data = await _cosmoDbWrapper.GetRecords<JobInfo, JobInfoOutModel>(_date.Day);
+
+        _count = data.Count(j => j.TimestampUnix > DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeSeconds());
+
+        _dataContent = JsonConvert.SerializeObject(data);
     }
 
     private async Task LoadTemplate()
@@ -106,7 +111,7 @@ public class CreateReport
     private void PopulateTemplate(string htmlTemplate)
     {
         var htmlBuilder = new StringBuilder(htmlTemplate);
-        htmlBuilder.Replace(DataPlaceholder, GetPopulatedData(_data));
+        htmlBuilder.Replace(DataPlaceholder, GetPopulatedData(_dataContent));
         htmlBuilder.Replace(TargetMonth, $"{_date:yyyy-MM}");
         _report = htmlBuilder.ToString();
     }
@@ -131,7 +136,7 @@ public class CreateReport
         await _logicAppWrapper.CallLogicApp(new LogicAppRequest<string>
         {
             Title = "Vacancy report for the current month",
-            Content = _reportUrl
+            Content = HtmlMessageHelper.BuildHtml(_count, _reportUrl)
         }, cancellationToken);
     }
 }

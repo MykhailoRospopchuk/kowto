@@ -86,7 +86,6 @@ public class VacancyScrapper
             _logger.LogError(e, "An error occurred while processing the request.");
             return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
-        
     }
 
     private void LoggResultDevEnv(List<JobInfo> jobs)
