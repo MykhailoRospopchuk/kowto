@@ -74,7 +74,7 @@ public class ClientWrapper
                 }
             })
             .Build();
-        }        
+        }
     }
 
     public void DemolishResiliencePipeline()
@@ -88,8 +88,8 @@ public class ClientWrapper
             async (ct) => await _client.PostAsync(uri, httpContent, ct),
             cancellationToken);
 
-        return response.sucess
-            ? ProcessHttpResponse(response.message) : 
+        return response.sucess ?
+            ProcessHttpResponse(response.message) : 
             new ContainerResult
             {
                 Success = false,
@@ -101,9 +101,9 @@ public class ClientWrapper
         var response = await ExecuteRequest(
             async (ct) => await _client.GetAsync(uri, ct),
             cancellationToken);
-        
-        return response.sucess
-            ? await ProcessHttpResponse<TReturn>(response.message) : 
+
+        return response.sucess ?
+            await ProcessHttpResponse<TReturn>(response.message) : 
             new ContainerResult<TReturn>
             {
                 Success = false,
@@ -152,7 +152,7 @@ public class ClientWrapper
                 result.Success = true;
             }
 
-            return result;            
+            return result;
         }
         catch (Exception e)
         {
