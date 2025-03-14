@@ -36,7 +36,7 @@ public class VacancyScrapper
     public async Task<IActionResult> Run([TimerTrigger("0 0 6-22 * * *")] TimerInfo req, CancellationToken cancellationToken)
     // public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("C# HTTP trigger function processed a request.");
+        _logger.LogInformation("C# HTTP trigger function processed a request. Action");
 
         try
         {
