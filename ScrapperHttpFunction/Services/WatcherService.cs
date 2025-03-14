@@ -17,7 +17,7 @@ public class WatcherService
         _logger = logger;
         _client = client;
 
-        _client.BuildResiliencePipeline();
+        _client.WithPipeline = true;
     }
 
     public void AddConfig(ResourceConfig resourceConfig)

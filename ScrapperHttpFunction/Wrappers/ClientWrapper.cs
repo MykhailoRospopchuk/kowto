@@ -13,14 +13,21 @@ public class ClientWrapper
     private HttpClient _client;
     private readonly ILogger<ClientWrapper> _logger;
     private ResiliencePipeline _pipeline;
+    private bool _withPipeline;
 
     public ClientWrapper(HttpClient client, ILogger<ClientWrapper> logger)
     {
         _client = client;
         _logger = logger;
+        BuildResiliencePipeline();
     }
 
-    public void BuildResiliencePipeline()
+    public bool WithPipeline
+    {
+        set => _withPipeline = value;
+    }
+
+    private void BuildResiliencePipeline()
     {
         if (_pipeline == null)
         {
@@ -33,6 +40,7 @@ public class ClientWrapper
                 ShouldHandle = args => args.Outcome switch
                 {
                     { Exception: TimeoutRejectedException } => PredicateResult.True(),
+                    // { Exception: HttpRequestException } => PredicateResult.True(),
                     { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
                     { Exception: OperationCanceledException } => PredicateResult.False(),
                     _ => PredicateResult.False()
@@ -75,11 +83,6 @@ public class ClientWrapper
             })
             .Build();
         }
-    }
-
-    public void DemolishResiliencePipeline()
-    {
-        _pipeline = null;
     }
 
     public async Task<ContainerResult> PostAsync(string uri, HttpContent httpContent, CancellationToken cancellationToken)
@@ -139,7 +142,7 @@ public class ClientWrapper
 
             var result = new ContainerResult<TReturn>();
 
-            if(response.Content.Headers.ContentType.MediaType != "application/json")
+            if(response.Content.Headers.ContentType?.MediaType != "application/json")
             {
                 var content = await response.Content.ReadAsStringAsync();
                 result.Value = (TReturn)Convert.ChangeType(content, typeof(TReturn));
@@ -170,7 +173,7 @@ public class ClientWrapper
     {
         try
         {
-            var result = _pipeline != null
+            var result = _pipeline != null && _withPipeline
                 ? await _pipeline.ExecuteAsync(action, cancellationToken)
                 : await action(cancellationToken);
             return (true, result);

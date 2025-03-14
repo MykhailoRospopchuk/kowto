@@ -20,6 +20,8 @@ public class LogicAppWrapper
         _logger = logger;
         _client = client;
         _configuration = configuration;
+
+        _client.WithPipeline = true;
     }
 
     public async Task CallLogicApp<T>(LogicAppRequest<T> request, CancellationToken cancellationToken)
