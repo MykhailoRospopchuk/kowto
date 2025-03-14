@@ -46,3 +46,9 @@ jobs:
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
 # For more samples to get started with GitHub Action workflows to deploy to Azure, refer to https://github.com/Azure/actions-workflow-samples
+# !!! Enable Basic Authentication: Azure Functions may have Basic Authentication disabled by default
+#   To enable it:
+#   - Navigate to your Function App in the Azure Portal.​
+#   - Go to Configuration > General settings.​
+#   - Set SCM Basic Auth Publishing Credentials to On.​
+#   - Save the changes.
