@@ -23,7 +23,8 @@ public class CosmoDbContainer
     private static Dictionary<string, string> _containerIds = new ()
     {
         { typeof(JobInfo).AssemblyQualifiedName, "Vacancies"},
-        { typeof(Resource).AssemblyQualifiedName, "Resources"}
+        { typeof(Resource).AssemblyQualifiedName, "Resources"},
+        { typeof(RequestsId).AssemblyQualifiedName, "RequestsId"},
     };
 
     public CosmoDbContainer(string connectionString)

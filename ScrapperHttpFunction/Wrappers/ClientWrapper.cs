@@ -1,5 +1,6 @@
 namespace ScrapperHttpFunction.Wrappers;
 
+using System.Net;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using ResultContainer;
@@ -42,7 +43,14 @@ public class ClientWrapper
                 {
                     { Exception: TimeoutRejectedException } => PredicateResult.True(),
                     // { Exception: HttpRequestException } => PredicateResult.True(),
-                    { Result: HttpResponseMessage response } when !response.IsSuccessStatusCode => PredicateResult.True(),
+                    { Result: HttpResponseMessage response } when
+                        response.StatusCode == HttpStatusCode.RequestTimeout => PredicateResult.True(),
+                    { Result: HttpResponseMessage response } when
+                        response.StatusCode == HttpStatusCode.TooManyRequests => PredicateResult.True(),
+                    { Result: HttpResponseMessage response } when
+                        (int)response.StatusCode >= 500 &&
+                        (int)response.StatusCode <= 599 &&
+                        response.StatusCode != HttpStatusCode.ServiceUnavailable => PredicateResult.True(),
                     { Exception: OperationCanceledException } => PredicateResult.False(),
                     _ => PredicateResult.False()
                 },
@@ -95,6 +103,20 @@ public class ClientWrapper
         return response.sucess ?
             ProcessHttpResponse(response.message) : 
             new ContainerResult
+            {
+                Success = false,
+            };
+    }
+
+    public async Task<ContainerResult<TReturn>> PostAsync<TReturn>(string uri, HttpContent httpContent, CancellationToken cancellationToken)
+    {
+        var response = await ExecuteRequest(
+            async (ct) => await _client.PostAsync(uri, httpContent, ct),
+            cancellationToken);
+
+        return response.sucess ?
+            await ProcessHttpResponse<TReturn>(response.message) : 
+            new ContainerResult<TReturn>
             {
                 Success = false,
             };
