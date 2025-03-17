@@ -37,6 +37,7 @@ public class ClientWrapper
                 Delay = TimeSpan.FromSeconds(2),
                 MaxRetryAttempts = 3,
                 BackoffType = DelayBackoffType.Exponential,
+                UseJitter = true,
                 ShouldHandle = args => args.Outcome switch
                 {
                     { Exception: TimeoutRejectedException } => PredicateResult.True(),
