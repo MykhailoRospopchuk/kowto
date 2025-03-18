@@ -33,64 +33,64 @@ public class ClientWrapper
         if (_pipeline == null)
         {
             _pipeline = new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                Delay = TimeSpan.FromSeconds(2),
-                MaxRetryAttempts = 3,
-                BackoffType = DelayBackoffType.Exponential,
-                UseJitter = true,
-                ShouldHandle = args => args.Outcome switch
+                .AddRetry(new RetryStrategyOptions
                 {
-                    { Exception: TimeoutRejectedException } => PredicateResult.True(),
-                    // { Exception: HttpRequestException } => PredicateResult.True(),
-                    { Result: HttpResponseMessage response } when
-                        response.StatusCode == HttpStatusCode.RequestTimeout => PredicateResult.True(),
-                    { Result: HttpResponseMessage response } when
-                        response.StatusCode == HttpStatusCode.TooManyRequests => PredicateResult.True(),
-                    { Result: HttpResponseMessage response } when
-                        (int)response.StatusCode >= 500 &&
-                        (int)response.StatusCode <= 599 &&
-                        response.StatusCode != HttpStatusCode.ServiceUnavailable => PredicateResult.True(),
-                    { Exception: OperationCanceledException } => PredicateResult.False(),
-                    _ => PredicateResult.False()
-                },
-                OnRetry = (args) =>
+                    Delay = TimeSpan.FromSeconds(2),
+                    MaxRetryAttempts = 3,
+                    BackoffType = DelayBackoffType.Exponential,
+                    UseJitter = true,
+                    ShouldHandle = args => args.Outcome switch
+                    {
+                        { Exception: TimeoutRejectedException } => PredicateResult.True(),
+                        // { Exception: HttpRequestException } => PredicateResult.True(),
+                        { Result: HttpResponseMessage response } when
+                            response.StatusCode == HttpStatusCode.RequestTimeout => PredicateResult.True(),
+                        { Result: HttpResponseMessage response } when
+                            response.StatusCode == HttpStatusCode.TooManyRequests => PredicateResult.True(),
+                        { Result: HttpResponseMessage response } when
+                            (int)response.StatusCode >= 500 &&
+                            (int)response.StatusCode <= 599 &&
+                            response.StatusCode != HttpStatusCode.ServiceUnavailable => PredicateResult.True(),
+                        { Exception: OperationCanceledException } => PredicateResult.False(),
+                        _ => PredicateResult.False()
+                    },
+                    OnRetry = (args) =>
+                    {
+                        _logger.LogWarning($"Retry {args.AttemptNumber} encountered an error. Delaying for {args.Duration} seconds.");
+                        return ValueTask.CompletedTask;
+                    }
+                })
+                .AddCircuitBreaker(new CircuitBreakerStrategyOptions
                 {
-                    _logger.LogWarning($"Retry {args.AttemptNumber} encountered an error. Delaying for {args.Duration} seconds.");
-                    return ValueTask.CompletedTask;
-                }
-            })
-            .AddCircuitBreaker(new CircuitBreakerStrategyOptions
-            {
-                FailureRatio = 0.1,
-                SamplingDuration = TimeSpan.FromSeconds(5),
-                BreakDuration = TimeSpan.FromSeconds(5),
-                OnOpened = (args) =>
+                    FailureRatio = 0.1,
+                    SamplingDuration = TimeSpan.FromSeconds(5),
+                    BreakDuration = TimeSpan.FromSeconds(5),
+                    OnOpened = (args) =>
+                    {
+                        _logger.LogWarning($"Circuit breaker triggered OPENED. Breaking for {args.BreakDuration} seconds.");
+                        return ValueTask.CompletedTask;
+                    },
+                    OnClosed = (args) =>
+                    {
+                        _logger.LogInformation("Circuit breaker CLOSED.");
+                        return ValueTask.CompletedTask;
+                    },
+                    OnHalfOpened = (args) =>
+                    {
+                        _logger.LogInformation("Circuit breaker HALF-OPENED.");
+                        return ValueTask.CompletedTask;
+                    }
+                })
+                .AddTimeout(new TimeoutStrategyOptions
                 {
-                    _logger.LogWarning($"Circuit breaker triggered OPENED. Breaking for {args.BreakDuration} seconds.");
-                    return ValueTask.CompletedTask;
-                },
-                OnClosed = (args) =>
-                {
-                    _logger.LogInformation("Circuit breaker CLOSED.");
-                    return ValueTask.CompletedTask;
-                },
-                OnHalfOpened = (args) =>
-                {
-                    _logger.LogInformation("Circuit breaker HALF-OPENED.");
-                    return ValueTask.CompletedTask;
-                }
-            })
-            .AddTimeout(new TimeoutStrategyOptions
-            {
-                Timeout = TimeSpan.FromSeconds(30),
-                OnTimeout = (args) =>
-                {
-                    _logger.LogWarning($"Timeout after {args.Timeout} seconds.");
-                    return ValueTask.CompletedTask;
-                }
-            })
-            .Build();
+                    Timeout = TimeSpan.FromSeconds(30),
+                    OnTimeout = (args) =>
+                    {
+                        _logger.LogWarning($"Timeout after {args.Timeout} seconds.");
+                        return ValueTask.CompletedTask;
+                    }
+                })
+                .Build();
         }
     }
 

@@ -24,7 +24,7 @@ public class WatcherService
     {
         _resourceConfigs.Add(resourceConfig);
     }
-    
+
     public void AddConfig(List<ResourceConfig> resourceConfigs)
     {
         _resourceConfigs.AddRange([.. resourceConfigs.DistinctBy(x => x.Path)]);
@@ -58,9 +58,9 @@ public class WatcherService
         try
         {
             var url = UrlHelper.BuildQuery(resource.Path, resource.Params);
-            
+
             var response = await _client.GetAsync<string>(url, cancellationToken);
-            
+
             if(!response.Success)
             {
                 _logger.LogError($"Failed to fetch data from the {resource.Path.ToString()} website");
@@ -69,7 +69,7 @@ public class WatcherService
             {
                 var rawHtml = response.Value;
                 var items = JobListingHelper.FetchJobListings(resource.Path, rawHtml);
-                
+
                 items.ForEach(jobs.Push);
             }
         }
