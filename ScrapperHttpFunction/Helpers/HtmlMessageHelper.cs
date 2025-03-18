@@ -23,4 +23,18 @@ public class HtmlMessageHelper
 
         return sb.ToString();
     }
+
+    public static string BuildHtml(int count, string reportUrl)
+    {
+        var template =
+            $"""
+             <div style=\"border: 1px solid #ccc; padding: 10px; margin: 10px;\">"
+                <h2 style="margin-top:0;"><strong>{DateOnly.FromDateTime(DateTime.UtcNow)}</strong> - Today</h2>
+                <h2 style="margin-top:0;"><strong>{count}</strong> - new records were added in the past 24 hours</h2>
+                <p><strong>Report URL:</strong> <a href="{reportUrl}" target="_blank">{reportUrl}</a></p>
+             </div>
+             """;
+
+        return template;
+    }
 }
