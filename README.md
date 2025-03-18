@@ -55,14 +55,11 @@ git clone https://github.com/MykhailoRospopchuk/kowto.git
 
 As I have already discovered "through scientific trial and error," if you use Outlook mail, it can be temporarily blocked if you send a message once an hour.
 
-![first](images/first.png)
-
 So I tried another option using Azure Communication Service with Email Communication Service. You can create default azure managed domain ```DoNotReplay@************azurecomm.net``` (and as expect it will go in spam folder on mailbox). But it works
 
-![logic_app_trigger](images/logic_app_trigger.png)
 ![logic_app_communication](images/logic_app_communication.png)
 
-4. **Build and run the project:**
+1. **Build and run the project:**
 
 ```bash
 func start
