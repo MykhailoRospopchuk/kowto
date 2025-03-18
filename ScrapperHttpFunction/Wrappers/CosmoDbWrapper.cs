@@ -23,20 +23,19 @@ public class CosmoDbWrapper
         if (!_container.TryGetValue(typeof(T).AssemblyQualifiedName, out Container container))
         {
             _logger.LogError($"No container for type {typeof(T).AssemblyQualifiedName}");
-            return new ContainerResult()
-            {
-                Success = false,
-            };
+            return new ContainerResult { Success = false };
         }
 
         var recordExists = await RecordExists<T>(record.Id, container, cancellationToken);
 
-        if (!recordExists.Success || recordExists.Value)
+        if (!recordExists.Success)
         {
-            return new ContainerResult()
-            {
-                Success = false,
-            };
+            return new ContainerResult { Success = false };
+        }
+
+        if (recordExists.Value)
+        {
+            return new ContainerResult { Success = true };
         }
 
         try
@@ -45,17 +44,11 @@ public class CosmoDbWrapper
             if (recordResponse.StatusCode != HttpStatusCode.Created)
             {
                 _logger.LogError("Record DO NOT CREATED in CosmoDb. Container: {0} Record Id: {1}", container.Id, record.Id);
-                return new ContainerResult()
-                {
-                    Success = true,
-                };
+                return new ContainerResult { Success = true };
             }
 
             _logger.LogError("Failed to create record in CosmosDB. Container: {ContainerId}, Record Id: {RecordId}", container.Id, record.Id);
-            return new ContainerResult
-            {
-                Success = false
-            };
+            return new ContainerResult { Success = false };
         }
         catch (Exception e)
         {
@@ -71,10 +64,7 @@ public class CosmoDbWrapper
         if (!_container.TryGetValue(typeof(T).AssemblyQualifiedName, out Container container))
         {
             _logger.LogError($"No container for type {typeof(T).AssemblyQualifiedName}");
-            return new ContainerResult<bool>()
-            {
-                Success = false,
-            };
+            return new ContainerResult<bool>() { Success = false };
         }
 
         return await RecordExists<T>(recordId, container, cancellationToken);
