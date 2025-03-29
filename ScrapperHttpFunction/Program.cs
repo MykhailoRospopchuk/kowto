@@ -40,16 +40,23 @@ try
     var containerUri = 
         Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_URI") ?? 
         throw new ArgumentNullException();
-    
+    var githubPersonalAccessToken = Environment.GetEnvironmentVariable("GitHubKowtoAppPAT") ??
+        throw new ArgumentNullException();
+
     var container = new CosmoDbContainer(connectionString);
     await container.Initialize();
+
+    builder.Services.AddSingleton(new GithubPersonalAccessTokenConfiguration
+    {
+        PersonalAccessToken = githubPersonalAccessToken
+    });
 
     builder.Services.AddSingleton(new AzureBlobContainerConfiguration
     {
         Signature = signature,
         ContainerUri = containerUri
     });
-    
+
     builder.Services.AddSingleton(new CommunicationLogicAppConfiguration
     {
         LogicAppUrl = logicAppUrl
