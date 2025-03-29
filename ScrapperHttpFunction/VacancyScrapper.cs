@@ -83,7 +83,7 @@ public class VacancyScrapper
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "An error occurred while processing the request.");
+            _logger.LogError(e, "An error occurred while processing the request");
             return new StatusCodeResult(StatusCodes.Status500InternalServerError);
         }
     }
