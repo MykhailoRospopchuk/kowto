@@ -46,12 +46,13 @@ git clone https://github.com/MykhailoRospopchuk/kowto.git
     "AZURE_FUNCTIONS_ENVIRONMENT": "Production",
     "CommunicationLogicApp": "",
     "AZURE_BLOB_CONTAINER_URI": "",
-    "AZURE_BLOB_CONTAINER_SIGNATURE": ""
+    "AZURE_BLOB_STORAGE_ACCOUNT_NAME": "",
+    "AZURE_BLOB_STORAGE_ACCOUNT_KEY": ""
   }
 }
 ```
 
-3. **As you already understand you need set up your NO-SQL database (CosmoDB in this our case) and create simple Azure Logic App**
+1. **As you already understand you need set up your NO-SQL database (CosmoDB in this our case) and create simple Azure Logic App**
 
 As I have already discovered "through scientific trial and error," if you use Outlook mail, it can be temporarily blocked if you send a message once an hour.
 
