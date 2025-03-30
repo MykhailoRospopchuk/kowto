@@ -8,9 +8,12 @@ In this project at this stage, there is one simple function - to notify me when 
 
 ![second](images/second.png)
 
-Also collecting statistics on vacancies per month (while the functionality is in its initial stage of existence). An example can be viewed at the link (https://scrapperhttp.blob.core.windows.net/scrapper-report/2025-03/2025-03-report.html the data is not accurate as a result of testing the functionality)
+Also collecting statistics on vacancies per month (while the functionality is in its initial stage of existence). An example can be viewed at the link (https://scrapperhttp.blob.core.windows.net/scrapper-report/2025-03/2025-03-report.html?sv=2023-11-03&se=2025-03-30T16%3A40%3A03Z&sr=b&sp=r&sig=9VCIIyI6T4dp5CXATBLplqwj1fzmu4Opt6xELKX1IVo%3D the data is not accurate as a result of testing the functionality and url will be expired at this time already)
 
 ![report_email](images/report_email.png)
+
+The report can also be viewed on the organization's GitHub page https://kowto-app.github.io/ (hosted using github pages on repo https://github.com/kowto-app/kowto-app.github.io)
+
 ![report_example](images/report_example.png)
 
 ## Key Features
@@ -20,6 +23,7 @@ Also collecting statistics on vacancies per month (while the functionality is in
 - Logic App Workflow: The project interacts with Azure Logic Apps through a specified workflow URL.
 - Application Insights: Integration with Application Insights for monitoring and diagnostics.
 - Email Communication Service: Sending emails from Logic App
+- Github api integration: updating report page hosted on github pages
 ## Setup Instructions
 1. **Clone the repository:**
 
@@ -47,7 +51,8 @@ git clone https://github.com/MykhailoRospopchuk/kowto.git
     "CommunicationLogicApp": "",
     "AZURE_BLOB_CONTAINER_URI": "",
     "AZURE_BLOB_STORAGE_ACCOUNT_NAME": "",
-    "AZURE_BLOB_STORAGE_ACCOUNT_KEY": ""
+    "AZURE_BLOB_STORAGE_ACCOUNT_KEY": "",
+    "GitHubKowtoAppPAT": ""
   }
 }
 ```
