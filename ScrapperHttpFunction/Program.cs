@@ -34,11 +34,14 @@ try
     var connectionString = 
         Environment.GetEnvironmentVariable("CosmoConnectionString") ?? 
         throw new ArgumentException("CosmoConnectionString environment variable is not set");
-    var signature = 
-        Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_SIGNATURE") ??
+    var storageContainerUrl = 
+        Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_URI") ??
         throw new ArgumentNullException();
-    var containerUri = 
-        Environment.GetEnvironmentVariable("AZURE_BLOB_CONTAINER_URI") ?? 
+    var storageAccountKey = 
+        Environment.GetEnvironmentVariable("AZURE_BLOB_STORAGE_ACCOUNT_KEY") ??
+        throw new ArgumentNullException();
+    var storageAccountName = 
+        Environment.GetEnvironmentVariable("AZURE_BLOB_STORAGE_ACCOUNT_NAME") ?? 
         throw new ArgumentNullException();
     var githubPersonalAccessToken = Environment.GetEnvironmentVariable("GitHubKowtoAppPAT") ??
         throw new ArgumentNullException();
@@ -53,8 +56,9 @@ try
 
     builder.Services.AddSingleton(new AzureBlobContainerConfiguration
     {
-        Signature = signature,
-        ContainerUri = containerUri
+        StorageContainerUrl = storageContainerUrl,
+        StorageAccountKey = storageAccountKey,
+        StorageAccountName = storageAccountName
     });
 
     builder.Services.AddSingleton(new CommunicationLogicAppConfiguration

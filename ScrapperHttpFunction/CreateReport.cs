@@ -6,8 +6,9 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using System.Text;
-using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
+using Azure.Storage.Sas;
 using Common.Configurations;
 using Common.HtmlResources;
 using CosmoDatabase.Entities;
@@ -118,16 +119,34 @@ public class CreateReport
 
     private async Task UploadReport()
     {
-        // Upload the report to the Azure Blob Storage
-        var sasCred = new AzureSasCredential(_blobConfiguration.Signature);
-        var blobUri = new Uri(_blobConfiguration.ContainerUri + $"{_date:yyyy-MM}/{_date:yyyy-MM}-report.html");
-        var blobClient = new BlobClient(blobUri, sasCred);
+        var sskCredentials = new StorageSharedKeyCredential(_blobConfiguration.StorageAccountName, _blobConfiguration.StorageAccountKey);
+
+        var blobName = $"{_date:yyyy-MM}/{_date:yyyy-MM}-report.html";
+        var blobUri = new Uri(_blobConfiguration.StorageContainerUrl + blobName);
+        var blobClient = new BlobClient(blobUri, sskCredentials);
 
         var byteArray = Encoding.UTF8.GetBytes(_report);
         var ms = new MemoryStream(byteArray);
 
         await blobClient.UploadAsync(ms, overwrite: true);
-        _reportUrl = blobUri.ToString();
+
+        if (blobClient.CanGenerateSasUri)
+        {
+            var sasBuilder = new BlobSasBuilder
+            {
+                Protocol = SasProtocol.Https,
+                StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+                ExpiresOn = DateTimeOffset.UtcNow.AddHours(20),
+                IPRange = new SasIPRange(System.Net.IPAddress.None, System.Net.IPAddress.None),
+                BlobContainerName = blobClient.BlobContainerName,
+                BlobName = blobName,
+                Resource = "b",
+            };
+            sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+            var signedUrl = blobClient.GenerateSasUri(sasBuilder);
+            _reportUrl = signedUrl.ToString();
+        }
     }
 
     private async Task SendEmail(CancellationToken cancellationToken)
