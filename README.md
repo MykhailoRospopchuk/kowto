@@ -8,7 +8,7 @@ In this project at this stage, there is one simple function - to notify me when 
 
 ![second](images/second.png)
 
-Also collecting statistics on vacancies per month (while the functionality is in its initial stage of existence). An example can be viewed at the link (https://scrapperhttp.blob.core.windows.net/scrapper-report/2025-03/2025-03-report.html?sv=2023-11-03&se=2025-03-30T16%3A40%3A03Z&sr=b&sp=r&sig=9VCIIyI6T4dp5CXATBLplqwj1fzmu4Opt6xELKX1IVo%3D the data is not accurate as a result of testing the functionality and url will be expired at this time already)
+Also collecting statistics on vacancies per month (while the functionality is in its initial stage of existence). An example can be viewed at the link (https://scrapperhttp.blob.core.windows.net/scrapper-report/2025-03/2025-03-report.html?sas-Opt6xELKX1IVo%3D the data is not accurate as a result of testing the functionality and url will be expired at this time already)
 
 ![report_email](images/report_email.png)
 
